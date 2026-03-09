@@ -3,25 +3,17 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Button, StyleSheet, Text, TextInput, View } from "react-native";
 import { firebase_auth } from "../firebaseConfig";
 
 export default function SignInScreen() {
-  // state variables to track email and password inputs.
-  // these make the text inputs "Controlled Components" (React manages their values).
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // get the auth instance initialized in firebaseConfig.js
   const auth = firebase_auth;
-
-  // handles User Registration.
-  // this creates a new user in Firebase Console -> Authentication tab.
 
   async function handleSignUp() {
     try {
-      // send request to Firebase to create a user.
-      // 'await' pauses execution here until Firebase responds.
       const response = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -29,31 +21,23 @@ export default function SignInScreen() {
       );
 
       console.log(response);
-      alert("Sign up success. User: " + email + " signed up.");
-      // note: After successful signup, Firebase automatically signs the user in.
-      // the onAuthStateChanged listener in App.js will detect this and navigate.
+      Alert.alert("Sign up success. User: " + email + " signed up.");
+
     } catch (error) {
-      // handle errors (e.g., email already in use, weak password).
       console.log(error.message);
-      alert(error.message);
+      Alert.alert("Sign Up Error", error.message);
     }
   }
 
-  // handles User Login.
-  //  this checks credentials against existing users in Firebase
 
   async function handleSignIn() {
     try {
-      // send request to Firebase to validate credentials.
       const response = await signInWithEmailAndPassword(auth, email, password);
 
-      //console.log(response);
-      alert("User: " + email + " signed in");
-      // note: Similar to sign up, a success here triggers App.js to switch screens automatically.
+      Alert.alert("User: " + email + " signed in");
     } catch (error) {
-      // handle errors (e.g., wrong password, user not found).
       console.log(error.message);
-      alert(error.message);
+      Alert.alert("Sign In Error", error.message);
     }
   }
 
