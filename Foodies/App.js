@@ -76,6 +76,7 @@ export default function App() {
         <Stack.Screen name="DishIntro" component={DishIntroScreen} />
         <Stack.Screen name="Ingredients" component={IngredientScreen} />
         <Stack.Screen name="Cooking" component={CookingScreen} />
+        
       </Stack.Navigator>
     </NavigationContainer>
   );

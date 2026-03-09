@@ -11,7 +11,6 @@ export default function HomeScreen({ navigation }) {
   const getRecipe = async () => {
 
     try {
-
       const searchResponse = await fetch(
         `https://api.spoonacular.com/recipes/complexSearch?cuisine=${cuisine}&number=1&apiKey=6d32bba489f444f292a99e602a3f0b79`
       );
