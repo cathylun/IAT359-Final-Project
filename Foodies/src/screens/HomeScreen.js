@@ -1,9 +1,7 @@
 import { collection, getDocs, query, where, doc, setDoc, and } from "firebase/firestore";
 import { useState } from "react";
-import { Alert, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { db } from "../firebaseConfig.js";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useState } from "react";
 import { Picker } from "@react-native-picker/picker";
 
 export default function HomeScreen({ navigation }) {
