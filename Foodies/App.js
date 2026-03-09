@@ -10,10 +10,8 @@ import HomeScreen from "./src/screens/HomeScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import GroceryListScreen from "./src/screens/GroceryListScreen";
 
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import HomeScreen from "./src/screens/HomeScreen";
+
 import DishIntroScreen from "./src/screens/DishIntroScreen";
 import IngredientScreen from "./src/screens/IngredientScreen";
 import CookingScreen from "./src/screens/CookingScreen";
