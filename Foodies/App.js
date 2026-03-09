@@ -10,6 +10,15 @@ import HomeScreen from "./src/screens/HomeScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import GroceryListScreen from "./src/screens/GroceryListScreen";
 
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
+import HomeScreen from "./src/screens/HomeScreen";
+import DishIntroScreen from "./src/screens/DishIntroScreen";
+import IngredientScreen from "./src/screens/IngredientScreen";
+import CookingScreen from "./src/screens/CookingScreen";
+
+
   const ProtectedTab = createBottomTabNavigator();
   const Stack = createNativeStackNavigator(); 
 
@@ -63,7 +72,12 @@ export default function App() {
           />
         ) : (
           <Stack.Screen name="SignIn" component={SignInScreen} />
+          
         )}
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="DishIntro" component={DishIntroScreen} />
+        <Stack.Screen name="Ingredients" component={IngredientScreen} />
+        <Stack.Screen name="Cooking" component={CookingScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
