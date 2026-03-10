@@ -62,7 +62,7 @@ export default function HomeScreen({ navigation }) {
       }
 
       const searchResponse = await fetch(
-        `https://api.spoonacular.com/recipes/complexSearch?cuisine=${cuisine}&number=20&addRecipeInformation=true&apiKey=e9969f8d922447e49055c217f58185b2`
+        `https://api.spoonacular.com/recipes/complexSearch?cuisine=${cuisine}&number=20&addRecipeInformation=true&apiKey=167b60fc88254d41b2ac9d94d9fed015`
       );
 
       const searchData = await searchResponse.json();
@@ -75,8 +75,7 @@ export default function HomeScreen({ navigation }) {
 
       const filteredRecipes = searchData.results.filter(
         (recipe) =>
-          recipe.readyInMinutes >= minTime &&
-          recipe.readyInMinutes <= maxTime
+          recipe.readyInMinutes >= minTime && recipe.readyInMinutes <= maxTime
       );
 
       if (filteredRecipes.length === 0) {
@@ -90,7 +89,7 @@ export default function HomeScreen({ navigation }) {
       const recipeId = recipe.id;
 
       const infoResponse = await fetch(
-        `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=e9969f8d922447e49055c217f58185b2`
+        `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=167b60fc88254d41b2ac9d94d9fed015`
       );
 
       const recipeData = await infoResponse.json();
