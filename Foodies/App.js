@@ -21,16 +21,20 @@ const Stack = createNativeStackNavigator();
 function ProtectedLayout({ photos }) {
   return (
     <ProtectedTab.Navigator>
-      <ProtectedTab.Screen name="Home" component={HomeScreen} />
+      <ProtectedTab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ headerShown: false }}
+      />
 
-      <ProtectedTab.Screen name="Profile">
+      <ProtectedTab.Screen name="Profile" options={{ headerShown: false }}>
         {(props) => <ProfileScreen {...props} photos={photos} />}
       </ProtectedTab.Screen>
 
       <ProtectedTab.Screen
         name="Grocery"
         component={GroceryListScreen}
-        options={{ title: "My Grocery List" }}
+        options={{ headerShown: false }}
       />
     </ProtectedTab.Navigator>
   );
