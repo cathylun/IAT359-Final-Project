@@ -5,41 +5,73 @@ import { db } from "../firebaseConfig.js";
 import { Picker } from "@react-native-picker/picker";
 
 export default function HomeScreen({ navigation }) {
+
   const [cuisine, setCuisine] = useState("Italian");
+  const [difficulty, setDifficulty] = useState("Easy");
 
   const getRecipe = async () => {
+
     try {
+
+      let minTime = 0;
+      let maxTime = 20;
+
+      if (difficulty === "Medium") {
+        minTime = 21;
+        maxTime = 40;
+      }
+
+      if (difficulty === "Hard") {
+        minTime = 41;
+        maxTime = 120;
+      }
+
       const searchResponse = await fetch(
-        `https://api.spoonacular.com/recipes/complexSearch?cuisine=${cuisine}&number=1&apiKey=6d32bba489f444f292a99e602a3f0b79`
+        `https://api.spoonacular.com/recipes/complexSearch?cuisine=${cuisine}&number=20&addRecipeInformation=true&apiKey=8995d4d0694441439390eb29085e453d`
       );
 
       const searchData = await searchResponse.json();
-
+      console.log(searchData);
       if (!searchData.results || searchData.results.length === 0) {
         Alert.alert("No recipe found");
         return;
       }
 
-      const recipeId = searchData.results[0].id;
-
-      const infoResponse = await fetch(
-        `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=6d32bba489f444f292a99e602a3f0b79`
+      const filteredRecipes = searchData.results.filter(
+        (recipe) =>
+          recipe.readyInMinutes >= minTime &&
+          recipe.readyInMinutes <= maxTime
       );
 
-      const recipe = await infoResponse.json();
+      if (filteredRecipes.length === 0) {
+        Alert.alert("No recipes match this difficulty");
+        return;
+      }
 
-      // Save recipe into Firestore
+      const recipe =
+        filteredRecipes[Math.floor(Math.random() * filteredRecipes.length)];
+
+      const recipeId = recipe.id;
+
+      const infoResponse = await fetch(
+        `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=8995d4d0694441439390eb29085e453d`
+      );
+
+      const recipeData = await infoResponse.json();
+
+      // ⭐ Save recipe to Firestore
       await setDoc(doc(db, "recipes", recipeId.toString()), {
-        id: recipe.id,
-        title: recipe.title,
-        image: recipe.image,
+        id: recipeData.id,
+        title: recipeData.title,
+        image: recipeData.image,
         cuisine: cuisine,
-        readyInMinutes: recipe.readyInMinutes,
-        servings: recipe.servings,
-        summary: recipe.summary,
-        instructions: recipe.instructions || "",
+        difficulty: difficulty,
+        readyInMinutes: recipeData.readyInMinutes,
+        servings: recipeData.servings,
+        summary: recipeData.summary,
+        instructions: recipeData.instructions || "",
         ingredients:
-          recipe.extendedIngredients?.map((item) => ({
+          recipeData.extendedIngredients?.map((item) => ({
             id: item.id,
             name: item.name,
             original: item.original,
@@ -49,15 +81,18 @@ export default function HomeScreen({ navigation }) {
         createdAt: serverTimestamp(),
       });
 
-      navigation.navigate("DishIntro", { recipe });
+      navigation.navigate("DishIntro", { recipe: recipeData });
+
     } catch (error) {
       console.log(error);
       Alert.alert("Error", "Could not fetch or save recipe.");
     }
+
   };
 
   return (
     <View style={styles.container}>
+
       <Text style={styles.title}>Foodies</Text>
 
       <Text style={styles.label}>Select Cuisine</Text>
@@ -74,14 +109,28 @@ export default function HomeScreen({ navigation }) {
         <Picker.Item label="Korean" value="Korean" />
       </Picker>
 
+      <Text style={styles.label}>Select Difficulty</Text>
+
+      <Picker
+        selectedValue={difficulty}
+        onValueChange={(itemValue) => setDifficulty(itemValue)}
+        style={{ width: 200 }}
+      >
+        <Picker.Item label="Easy" value="Easy" />
+        <Picker.Item label="Medium" value="Medium" />
+        <Picker.Item label="Hard" value="Hard" />
+      </Picker>
+
       <TouchableOpacity style={styles.button} onPress={getRecipe}>
         <Text style={styles.buttonText}>Make Food</Text>
       </TouchableOpacity>
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+
   container: {
     flex: 1,
     justifyContent: "center",
@@ -109,4 +158,5 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
+
 });
