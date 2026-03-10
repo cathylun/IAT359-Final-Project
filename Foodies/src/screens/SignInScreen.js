@@ -56,19 +56,18 @@ export default function SignInScreen() {
           style={styles.logo}
           source={require("../../assets/prettierBowl.png")}
         />
+        <Text style={styles.inputHeader}>Email:</Text>
         <TextInput
           style={styles.input}
-          placeholder="Email"
           keyboardType="email-address" // optimizes keyboard for email entry (@ symbol)
           value={email}
           onChangeText={setEmail} // updates state on every keystroke
           autoCapitalize="none" // important! Prevents auto-capitalizing the first letter of emails
         />
-
         {/* Password Input */}
+        <Text style={styles.inputHeader}>Password:</Text>
         <TextInput
           style={styles.input}
-          placeholder="Password"
           secureTextEntry={true} // hides text for security (dots/asterisks)
           value={password}
           onChangeText={setPassword}
@@ -94,11 +93,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#F6EADB",
   },
   header: {
-    fontSize: 24,
+    fontSize: 36,
     marginBottom: 24,
     color: "#FC8585",
     textAlign: "center",
   },
+
   inputContainer: {
     display: "flex",
     justifyContent: "center",
@@ -112,12 +112,18 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
     paddingBottom: 24,
   },
+  inputHeader: {
+    fontSize: 16,
+    marginBottom: 12,
+    color: "#FC8585",
+    textAlign: "left",
+  },
 
   input: {
-    marginTop: 24,
+    marginBottom: 24,
+    paddingBottom: 4,
     textAlign: "left",
     borderBottomWidth: 1,
-    paddingBottom: 24,
   },
   buttonLogin: {
     marginTop: 24,
