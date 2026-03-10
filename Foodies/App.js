@@ -1,6 +1,6 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { StyleSheet } from "react-native";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
@@ -10,38 +10,35 @@ import HomeScreen from "./src/screens/HomeScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import GroceryListScreen from "./src/screens/GroceryListScreen";
 
-  const ProtectedTab = createBottomTabNavigator();
-  const Stack = createNativeStackNavigator(); 
+const ProtectedTab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
-  function ProtectedLayout(){
+function ProtectedLayout() {
   return (
-      <ProtectedTab.Navigator>
-          <ProtectedTab.Screen name="Home"
-          component= {HomeScreen}/>
-        
-          <ProtectedTab.Screen 
-            name="Profile" 
-            component={ProfileScreen} 
-            options={{title: 'My Profile' }} 
-          />
+    <ProtectedTab.Navigator>
+      <ProtectedTab.Screen name="Home" component={HomeScreen} />
 
-        <ProtectedTab.Screen 
-            name="Grocery" 
-            component={GroceryListScreen} 
-            options={{title: 'My Grocery List' }} 
-        />
+      <ProtectedTab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ title: "My Profile" }}
+      />
 
-      </ProtectedTab.Navigator>
+      <ProtectedTab.Screen
+        name="Grocery"
+        component={GroceryListScreen}
+        options={{ title: "My Grocery List" }}
+      />
+    </ProtectedTab.Navigator>
   );
 }
 
 export default function App() {
-
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-     const unsubscribe = onAuthStateChanged(firebase_auth, (user) => {
+    const unsubscribe = onAuthStateChanged(firebase_auth, (user) => {
       console.log("user", user);
       setUser(user);
       setLoading(false);
@@ -50,7 +47,6 @@ export default function App() {
   }, []);
 
   if (loading) return null;
-
 
   return (
     <NavigationContainer>
@@ -62,7 +58,11 @@ export default function App() {
             options={{ headerShown: false }}
           />
         ) : (
-          <Stack.Screen name="SignIn" component={SignInScreen} />
+          <Stack.Screen
+            name="SignIn"
+            component={SignInScreen}
+            options={{ headerShown: false }}
+          />
         )}
       </Stack.Navigator>
     </NavigationContainer>

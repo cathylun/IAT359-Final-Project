@@ -3,7 +3,15 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { useState } from "react";
-import { Alert, Button, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Alert,
+  Button,
+  StyleSheet,
+  Image,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { firebase_auth } from "../firebaseConfig";
 
 export default function SignInScreen() {
@@ -17,18 +25,16 @@ export default function SignInScreen() {
       const response = await createUserWithEmailAndPassword(
         auth,
         email,
-        password,
+        password
       );
 
       console.log(response);
       Alert.alert("Sign up success. User: " + email + " signed up.");
-
     } catch (error) {
       console.log(error.message);
       Alert.alert("Sign Up Error", error.message);
     }
   }
-
 
   async function handleSignIn() {
     try {
@@ -43,34 +49,38 @@ export default function SignInScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Welcome</Text>
+      <Text style={styles.header}>Food From Home</Text>
 
-      {/* Email Input */}
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        keyboardType="email-address" // optimizes keyboard for email entry (@ symbol)
-        value={email}
-        onChangeText={setEmail} // updates state on every keystroke
-        autoCapitalize="none" // important! Prevents auto-capitalizing the first letter of emails
-      />
+      <View style={styles.inputContainer}>
+        <Image
+          style={styles.logo}
+          source={require("../../assets/prettierBowl.png")}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          keyboardType="email-address" // optimizes keyboard for email entry (@ symbol)
+          value={email}
+          onChangeText={setEmail} // updates state on every keystroke
+          autoCapitalize="none" // important! Prevents auto-capitalizing the first letter of emails
+        />
 
-      {/* Password Input */}
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry={true} // hides text for security (dots/asterisks)
-        value={password}
-        onChangeText={setPassword}
-      />
+        {/* Password Input */}
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          secureTextEntry={true} // hides text for security (dots/asterisks)
+          value={password}
+          onChangeText={setPassword}
+        />
+      </View>
 
-      {/* Action Buttons */}
-      <View style={styles.buttonContainer}>
-        <Button title="Sign Up" onPress={handleSignUp} />
+      <View style={styles.buttonLogin}>
+        <Button title="Sign In" onPress={handleSignIn} color={"#FFFFFF"} />
       </View>
 
       <View style={styles.buttonContainer}>
-        <Button title="Sign In" onPress={handleSignIn} />
+        <Button title="Sign Up" onPress={handleSignUp} color={"#FC8585"} />
       </View>
     </View>
   );
@@ -81,28 +91,44 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 16,
-    backgroundColor: "#f2f2f2",
+    backgroundColor: "#F6EADB",
   },
   header: {
     fontSize: 24,
     marginBottom: 24,
+    color: "#FC8585",
     textAlign: "center",
   },
-  input: {
-    height: 40,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    marginBottom: 12,
-    paddingHorizontal: 8,
-    borderRadius: 4,
-    backgroundColor: "white",
+  inputContainer: {
+    display: "flex",
+    justifyContent: "center",
+    marginHorizontal: 56,
   },
+
+  logo: {
+    alignSelf: "center",
+    width: 160,
+    height: 160,
+    resizeMode: "contain",
+    paddingBottom: 24,
+  },
+
+  input: {
+    marginTop: 24,
+    textAlign: "left",
+    borderBottomWidth: 1,
+    paddingBottom: 24,
+  },
+  buttonLogin: {
+    marginTop: 24,
+    textDecorationLines: "none",
+    color: "#FFFFFF",
+    backgroundColor: "#FC8585",
+    marginHorizontal: 96,
+    borderRadius: 99,
+  },
+
   buttonContainer: {
     padding: 20,
-  },
-  footer: {
-    marginTop: 20,
-    textAlign: "center",
-    color: "#888",
   },
 });
