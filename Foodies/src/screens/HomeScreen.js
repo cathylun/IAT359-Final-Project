@@ -27,7 +27,7 @@ export default function HomeScreen({ navigation }) {
       }
 
       const searchResponse = await fetch(
-        `https://api.spoonacular.com/recipes/complexSearch?cuisine=${cuisine}&number=20&addRecipeInformation=true&apiKey=8995d4d0694441439390eb29085e453d`
+        `https://api.spoonacular.com/recipes/complexSearch?cuisine=${cuisine}&number=20&addRecipeInformation=true&apiKey=e9969f8d922447e49055c217f58185b2`
       );
 
       const searchData = await searchResponse.json();
@@ -54,12 +54,11 @@ export default function HomeScreen({ navigation }) {
       const recipeId = recipe.id;
 
       const infoResponse = await fetch(
-        `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=8995d4d0694441439390eb29085e453d`
+        `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=e9969f8d922447e49055c217f58185b2`
       );
 
       const recipeData = await infoResponse.json();
 
-      // ⭐ Save recipe to Firestore
       await setDoc(doc(db, "recipes", recipeId.toString()), {
         id: recipeData.id,
         title: recipeData.title,
