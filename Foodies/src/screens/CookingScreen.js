@@ -1,9 +1,7 @@
-import { View, Text, ScrollView } from "react-native";
-
-export default function CookingScreen({ route }) {
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+export default function CookingScreen({ route, navigation }) {
 
   const { recipe } = route.params;
-
   const steps = recipe.analyzedInstructions[0]?.steps || [];
 
   return (
@@ -20,6 +18,19 @@ export default function CookingScreen({ route }) {
         </Text>
 
       ))}
+        <TouchableOpacity
+        style={{
+          marginTop:30,
+          backgroundColor:"#FF9500",
+          padding:15,
+          borderRadius:10
+        }}
+        onPress={()=>navigation.navigate("Camera")}
+      >
+        <Text style={{color:"white",textAlign:"center"}}>
+          Take Photo
+        </Text>
+      </TouchableOpacity>
 
     </ScrollView>
   );
