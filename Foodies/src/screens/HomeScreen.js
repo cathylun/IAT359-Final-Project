@@ -12,37 +12,37 @@ export default function HomeScreen({ navigation }) {
   const getRecipe = async () => {
 
     try {
+      let minTime, maxTime;
 
-      let minTime = 0;
-      let maxTime = 20;
-
-      if (difficulty === "Medium") {
+      if (difficulty === "Easy") {
+        minTime = 0;
+        maxTime = 20;
+      } else if (difficulty === "Medium") {
         minTime = 21;
         maxTime = 40;
-      }
-
-      if (difficulty === "Hard") {
+      } else {
         minTime = 41;
         maxTime = 120;
       }
+      // set min and max time based on difficulty
 
       const searchResponse = await fetch(
         `https://api.spoonacular.com/recipes/complexSearch?cuisine=${cuisine}&number=20&addRecipeInformation=true&apiKey=e9969f8d922447e49055c217f58185b2`
       );
-
+      // fetch recipes from API based on selected cuisine
       const searchData = await searchResponse.json();
-      console.log(searchData);
       if (!searchData.results || searchData.results.length === 0) {
         Alert.alert("No recipe found");
         return;
       }
+      // if result does not exsit or is empty array , show alert
 
       const filteredRecipes = searchData.results.filter(
         (recipe) =>
           recipe.readyInMinutes >= minTime &&
           recipe.readyInMinutes <= maxTime
       );
-
+      // keep only recipes which time falls within the selected difficulty range
       if (filteredRecipes.length === 0) {
         Alert.alert("No recipes match this difficulty");
         return;
@@ -50,13 +50,14 @@ export default function HomeScreen({ navigation }) {
 
       const recipe =
         filteredRecipes[Math.floor(Math.random() * filteredRecipes.length)];
-
+      // pick random recipe from filterd list
       const recipeId = recipe.id;
+      //fetch full id
 
       const infoResponse = await fetch(
         `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=e9969f8d922447e49055c217f58185b2`
       );
-
+      //second api for detail like ingredient,instructions
       const recipeData = await infoResponse.json();
 
       await setDoc(doc(db, "recipes", recipeId.toString()), {
