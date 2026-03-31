@@ -4,9 +4,9 @@ export default function CookingScreen({ route, navigation }) {
 
   const { recipe } = route.params;
   const steps = recipe.analyzedInstructions[0]?.steps || [];
-
+  // get cooking steps, if nothing there than use empty array
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container}> 
 
       <Text style={styles.title}>
         Cooking Steps
@@ -16,8 +16,8 @@ export default function CookingScreen({ route, navigation }) {
         <Text key={step.number} style={styles.step}>
           Step {step.number}: {step.step}
         </Text>
-      ))}
-
+      ))} 
+      {/* loop through each step and display */}
       <TouchableOpacity
         style={styles.photoButton}
         onPress={() => navigation.navigate("Camera")}

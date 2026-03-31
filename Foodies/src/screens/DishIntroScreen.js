@@ -15,7 +15,8 @@ export default function DishIntroScreen({ route, navigation }) {
       />
 
       <Text>{recipe.summary.replace(/<[^>]+>/g, "")}</Text>
-
+      {/* removes tags */}
+      
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate("Ingredients", { recipe })}
