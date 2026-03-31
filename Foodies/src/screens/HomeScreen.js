@@ -1,23 +1,57 @@
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
 import { db } from "../firebaseConfig.js";
 import { Picker } from "@react-native-picker/picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function HomeScreen({ navigation }) {
-
   const [cuisine, setCuisine] = useState("Italian");
   const [difficulty, setDifficulty] = useState("Easy");
 
-  const getRecipe = async () => {
+  useEffect(() => {
+    loadSavedPreferences();
+  }, []);
 
+  useEffect(() => {
+    savePreferences();
+  }, [cuisine, difficulty]);
+
+  const loadSavedPreferences = async () => {
     try {
-      let minTime, maxTime;
+      const savedCuisine = await AsyncStorage.getItem("selectedCuisine");
+      const savedDifficulty = await AsyncStorage.getItem("selectedDifficulty");
 
-      if (difficulty === "Easy") {
-        minTime = 0;
-        maxTime = 20;
-      } else if (difficulty === "Medium") {
+      if (savedCuisine) setCuisine(savedCuisine);
+      if (savedDifficulty) setDifficulty(savedDifficulty);
+    } catch (error) {
+      console.log("Error loading preferences:", error);
+    }
+  };
+
+  const savePreferences = async () => {
+    try {
+      await AsyncStorage.setItem("selectedCuisine", cuisine);
+      await AsyncStorage.setItem("selectedDifficulty", difficulty);
+    } catch (error) {
+      console.log("Error saving preferences:", error);
+    }
+  };
+
+  const saveLastRecipeLocally = async (recipeData) => {
+    try {
+      await AsyncStorage.setItem("lastRecipe", JSON.stringify(recipeData));
+    } catch (error) {
+      console.log("Error saving recipe locally:", error);
+    }
+  };
+
+  const getRecipe = async () => {
+    try {
+      let minTime = 0;
+      let maxTime = 20;
+
+      if (difficulty === "Medium") {
         minTime = 21;
         maxTime = 40;
       } else {
@@ -27,10 +61,12 @@ export default function HomeScreen({ navigation }) {
       // set min and max time based on difficulty
 
       const searchResponse = await fetch(
-        `https://api.spoonacular.com/recipes/complexSearch?cuisine=${cuisine}&number=20&addRecipeInformation=true&apiKey=e9969f8d922447e49055c217f58185b2`
+        `https://api.spoonacular.com/recipes/complexSearch?cuisine=${cuisine}&number=20&addRecipeInformation=true&apiKey=167b60fc88254d41b2ac9d94d9fed015`
       );
       // fetch recipes from API based on selected cuisine
       const searchData = await searchResponse.json();
+      console.log(searchData);
+
       if (!searchData.results || searchData.results.length === 0) {
         Alert.alert("No recipe found");
         return;
@@ -39,8 +75,7 @@ export default function HomeScreen({ navigation }) {
 
       const filteredRecipes = searchData.results.filter(
         (recipe) =>
-          recipe.readyInMinutes >= minTime &&
-          recipe.readyInMinutes <= maxTime
+          recipe.readyInMinutes >= minTime && recipe.readyInMinutes <= maxTime
       );
       // keep only recipes which time falls within the selected difficulty range
       if (filteredRecipes.length === 0) {
@@ -55,7 +90,7 @@ export default function HomeScreen({ navigation }) {
       //fetch full id
 
       const infoResponse = await fetch(
-        `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=e9969f8d922447e49055c217f58185b2`
+        `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=167b60fc88254d41b2ac9d94d9fed015`
       );
       //second api for detail like ingredient,instructions
       const recipeData = await infoResponse.json();
@@ -81,22 +116,20 @@ export default function HomeScreen({ navigation }) {
         createdAt: serverTimestamp(),
       });
 
-      navigation.navigate("DishIntro", { recipe: recipeData });
+      await saveLastRecipeLocally(recipeData);
 
+      navigation.navigate("DishIntro", { recipe: recipeData });
     } catch (error) {
       console.log(error);
       Alert.alert("Error", "Could not fetch or save recipe.");
     }
-
   };
 
   return (
     <View style={styles.container}>
-
       <Text style={styles.title}>Foodies</Text>
 
       <Text style={styles.label}>Select Cuisine</Text>
-
       <Picker
         selectedValue={cuisine}
         onValueChange={(itemValue) => setCuisine(itemValue)}
@@ -110,7 +143,6 @@ export default function HomeScreen({ navigation }) {
       </Picker>
 
       <Text style={styles.label}>Select Difficulty</Text>
-
       <Picker
         selectedValue={difficulty}
         onValueChange={(itemValue) => setDifficulty(itemValue)}
@@ -124,13 +156,11 @@ export default function HomeScreen({ navigation }) {
       <TouchableOpacity style={styles.button} onPress={getRecipe}>
         <Text style={styles.buttonText}>Make Food</Text>
       </TouchableOpacity>
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
     justifyContent: "center",
@@ -158,5 +188,4 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
-
 });
