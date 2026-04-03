@@ -48,80 +48,83 @@ export default function HomeScreen({ navigation }) {
 
   const getRecipe = async () => {
     try {
-      let minTime = 0;
-      let maxTime = 20;
-
-      if (difficulty === "Medium") {
-        minTime = 21;
-        maxTime = 40;
-      } else {
-        minTime = 41;
-        maxTime = 120;
-      }
-      // set min and max time based on difficulty
-
+      // 1. Fetch recipes by cuisine
       const searchResponse = await fetch(
-        `https://api.spoonacular.com/recipes/complexSearch?cuisine=${cuisine}&number=20&addRecipeInformation=true&apiKey=167b60fc88254d41b2ac9d94d9fed015`
+        `https://www.themealdb.com/api/json/v1/1/filter.php?a=${cuisine}`
       );
-      // fetch recipes from API based on selected cuisine
+
       const searchData = await searchResponse.json();
-      console.log(searchData);
 
-      if (!searchData.results || searchData.results.length === 0) {
+      if (!searchData.meals || searchData.meals.length === 0) {
         Alert.alert("No recipe found");
-        return;
-      }
-      // if result does not exsit or is empty array , show alert
-
-      const filteredRecipes = searchData.results.filter(
-        (recipe) =>
-          recipe.readyInMinutes >= minTime && recipe.readyInMinutes <= maxTime
-      );
-      // keep only recipes which time falls within the selected difficulty range
-      if (filteredRecipes.length === 0) {
-        Alert.alert("No recipes match this difficulty");
         return;
       }
 
       const recipe =
-        filteredRecipes[Math.floor(Math.random() * filteredRecipes.length)];
-      // pick random recipe from filterd list
-      const recipeId = recipe.id;
-      //fetch full id
+        searchData.meals[Math.floor(Math.random() * searchData.meals.length)];
+
+      const recipeId = recipe.idMeal;
 
       const infoResponse = await fetch(
-        `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=167b60fc88254d41b2ac9d94d9fed015`
+        `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${recipeId}`
       );
-      //second api for detail like ingredient,instructions
-      const recipeData = await infoResponse.json();
 
+      const infoData = await infoResponse.json();
+      const recipeData = infoData.meals[0];
+
+      const ingredients = [];
+
+      for (let i = 1; i <= 20; i++) {
+        if (recipeData[`strIngredient${i}`]) {
+          ingredients.push({
+            id: i,
+            name: recipeData[`strIngredient${i}`],
+            measure: recipeData[`strMeasure${i}`],
+          });
+        }
+      }
+
+      const instructionsText = recipeData.strInstructions || "";
+
+      const stepsArray = instructionsText
+        .split("\n")
+        .filter((s) => s.trim() !== "")
+        .map((s, index) => ({
+          number: index + 1,
+          step: s,
+        }));
+
+      // 5. Save to Firebase
       await setDoc(doc(db, "recipes", recipeId.toString()), {
-        id: recipeData.id,
-        title: recipeData.title,
-        image: recipeData.image,
-        cuisine: cuisine,
+        id: recipeId,
+        title: recipeData.strMeal,
+        image: recipeData.strMealThumb,
+        cuisine: recipeData.strArea,
         difficulty: difficulty,
-        readyInMinutes: recipeData.readyInMinutes,
-        servings: recipeData.servings,
-        summary: recipeData.summary,
-        instructions: recipeData.instructions || "",
-        ingredients:
-          recipeData.extendedIngredients?.map((item) => ({
-            id: item.id,
-            name: item.name,
-            original: item.original,
-            amount: item.amount,
-            unit: item.unit,
-          })) || [],
+        summary: `${recipeData.strMeal} is a ${recipeData.strArea} dish. Try making this ${difficulty.toLowerCase()} recipe at home.`,
+        instructions: instructionsText,
+        ingredients: ingredients,
         createdAt: serverTimestamp(),
       });
 
       await saveLastRecipeLocally(recipeData);
 
-      navigation.navigate("DishIntro", { recipe: recipeData });
+      navigation.navigate("DishIntro", {
+        recipe: {
+          title: recipeData.strMeal,
+          image: recipeData.strMealThumb,
+          summary: `${recipeData.strMeal} is a ${recipeData.strArea} dish. Try making this ${difficulty.toLowerCase()} recipe at home.`,
+          ingredients: ingredients,
+          analyzedInstructions: [
+            {
+              steps: stepsArray,
+            },
+          ],
+        },
+      });
     } catch (error) {
       console.log(error);
-      Alert.alert("Error", "Could not fetch or save recipe.");
+      Alert.alert("Error", "Could not fetch recipe.");
     }
   };
 

@@ -10,6 +10,7 @@ export default function CookingScreen({ route, navigation }) {
   const { recipe } = route.params;
   const steps = recipe.analyzedInstructions[0]?.steps || [];
   // get cooking steps, if nothing there than use empty array
+  
   return (
     <ScrollView style={styles.container}> 
 

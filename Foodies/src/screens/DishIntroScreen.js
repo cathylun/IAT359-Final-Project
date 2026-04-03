@@ -14,9 +14,12 @@ export default function DishIntroScreen({ route, navigation }) {
         style={styles.image}
       />
 
-      <Text>{recipe.summary.replace(/<[^>]+>/g, "")}</Text>
-      {/* removes tags */}
-      
+      <Text>
+        {recipe.summary
+          ? recipe.summary.replace(/<[^>]+>/g, "")
+          : "No description available"}
+      </Text>
+            
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate("Ingredients", { recipe })}
