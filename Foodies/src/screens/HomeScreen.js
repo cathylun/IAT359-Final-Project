@@ -8,14 +8,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function HomeScreen({ navigation }) {
   const [cuisine, setCuisine] = useState("Italian");
   const [difficulty, setDifficulty] = useState("Easy");
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     loadSavedPreferences();
   }, []);
 
   useEffect(() => {
+    if (!isLoaded) return;
     savePreferences();
-  }, [cuisine, difficulty]);
+  }, [cuisine, difficulty, isLoaded]);
 
   const loadSavedPreferences = async () => {
     try {
@@ -26,6 +28,8 @@ export default function HomeScreen({ navigation }) {
       if (savedDifficulty) setDifficulty(savedDifficulty);
     } catch (error) {
       console.log("Error loading preferences:", error);
+    } finally {
+      setIsLoaded(true);
     }
   };
 
@@ -38,17 +42,63 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  const saveLastRecipeLocally = async (recipeData) => {
+  const saveRecipeLocally = async (newRecipe) => {
     try {
-      await AsyncStorage.setItem("lastRecipe", JSON.stringify(recipeData));
+      const existingRecipes = await AsyncStorage.getItem("savedRecipes");
+      let recipesArray = existingRecipes ? JSON.parse(existingRecipes) : [];
+
+      // avoid duplicates of same recipe + difficulty
+      const alreadyExists = recipesArray.some(
+        (recipe) =>
+          recipe.id === newRecipe.id && recipe.difficulty === newRecipe.difficulty
+      );
+
+      if (!alreadyExists) {
+        recipesArray.push(newRecipe);
+        await AsyncStorage.setItem("savedRecipes", JSON.stringify(recipesArray));
+      }
     } catch (error) {
       console.log("Error saving recipe locally:", error);
     }
   };
 
+  const getOfflineRecipe = async () => {
+    try {
+      const savedRecipes = await AsyncStorage.getItem("savedRecipes");
+      const recipesArray = savedRecipes ? JSON.parse(savedRecipes) : [];
+
+      const matchingRecipes = recipesArray.filter(
+        (recipe) =>
+          recipe.cuisine?.toLowerCase() === cuisine.toLowerCase() &&
+          recipe.difficulty?.toLowerCase() === difficulty.toLowerCase()
+      );
+
+      if (matchingRecipes.length === 0) {
+        Alert.alert(
+          "Offline Mode",
+          "You have no dishes cooked in this cuisine and difficulty for offline mode"
+        );
+        return null;
+      }
+
+      const randomRecipe =
+        matchingRecipes[Math.floor(Math.random() * matchingRecipes.length)];
+
+      return randomRecipe;
+    } catch (error) {
+      console.log("Error loading offline recipe:", error);
+      return null;
+    }
+  };
+
+  const openRecipe = (recipe) => {
+    navigation.navigate("DishIntro", {
+      recipe,
+    });
+  };
+
   const getRecipe = async () => {
     try {
-      // 1. Fetch recipes by cuisine
       const searchResponse = await fetch(
         `https://www.themealdb.com/api/json/v1/1/filter.php?a=${cuisine}`
       );
@@ -75,11 +125,14 @@ export default function HomeScreen({ navigation }) {
       const ingredients = [];
 
       for (let i = 1; i <= 20; i++) {
-        if (recipeData[`strIngredient${i}`]) {
+        const ingredient = recipeData[`strIngredient${i}`];
+        const measure = recipeData[`strMeasure${i}`];
+
+        if (ingredient && ingredient.trim() !== "") {
           ingredients.push({
             id: i,
-            name: recipeData[`strIngredient${i}`],
-            measure: recipeData[`strMeasure${i}`],
+            name: ingredient,
+            measure: measure || "",
           });
         }
       }
@@ -91,40 +144,47 @@ export default function HomeScreen({ navigation }) {
         .filter((s) => s.trim() !== "")
         .map((s, index) => ({
           number: index + 1,
-          step: s,
+          step: s.trim(),
         }));
 
-      // 5. Save to Firebase
-      await setDoc(doc(db, "recipes", recipeId.toString()), {
+      const formattedRecipe = {
         id: recipeId,
         title: recipeData.strMeal,
         image: recipeData.strMealThumb,
-        cuisine: recipeData.strArea,
+        cuisine: cuisine,
         difficulty: difficulty,
         summary: `${recipeData.strMeal} is a ${recipeData.strArea} dish. Try making this ${difficulty.toLowerCase()} recipe at home.`,
         instructions: instructionsText,
         ingredients: ingredients,
+        analyzedInstructions: [
+          {
+            steps: stepsArray,
+          },
+        ],
+      };
+
+      // save to Firestore
+      await setDoc(doc(db, "recipes", recipeId.toString()), {
+        ...formattedRecipe,
         createdAt: serverTimestamp(),
       });
 
-      await saveLastRecipeLocally(recipeData);
+      // save to local offline collection
+      await saveRecipeLocally(formattedRecipe);
 
-      navigation.navigate("DishIntro", {
-        recipe: {
-          title: recipeData.strMeal,
-          image: recipeData.strMealThumb,
-          summary: `${recipeData.strMeal} is a ${recipeData.strArea} dish. Try making this ${difficulty.toLowerCase()} recipe at home.`,
-          ingredients: ingredients,
-          analyzedInstructions: [
-            {
-              steps: stepsArray,
-            },
-          ],
-        },
-      });
+      openRecipe(formattedRecipe);
     } catch (error) {
-      console.log(error);
-      Alert.alert("Error", "Could not fetch recipe.");
+      console.log("Online fetch failed, trying offline recipe:", error);
+
+      const offlineRecipe = await getOfflineRecipe();
+
+      if (offlineRecipe) {
+        Alert.alert(
+          "Offline Mode",
+          "Opening a saved dish from this cuisine and difficulty."
+        );
+        openRecipe(offlineRecipe);
+      }
     }
   };
 
