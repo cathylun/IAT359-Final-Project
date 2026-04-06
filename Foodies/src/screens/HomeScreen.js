@@ -1,10 +1,17 @@
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useState, useEffect } from "react";
-import { StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
-import { db } from "../firebaseConfig.js";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Alert,
+  Image,
+} from "react-native";
+import { db, firebase_auth } from "../firebaseConfig.js";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Image } from "react-native";
+import { signOut } from "firebase/auth";
 
 export default function HomeScreen({ navigation }) {
   const [cuisine, setCuisine] = useState("Italian");
@@ -19,6 +26,17 @@ export default function HomeScreen({ navigation }) {
     if (!isLoaded) return;
     savePreferences();
   }, [cuisine, difficulty, isLoaded]);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(firebase_auth);
+      await AsyncStorage.removeItem("isLoggedIn");
+      await AsyncStorage.removeItem("userEmail");
+    } catch (error) {
+      console.log("Logout error:", error);
+      Alert.alert("Logout Error", "Could not log out.");
+    }
+  };
 
   const loadSavedPreferences = async () => {
     try {
@@ -48,10 +66,10 @@ export default function HomeScreen({ navigation }) {
       const existingRecipes = await AsyncStorage.getItem("savedRecipes");
       let recipesArray = existingRecipes ? JSON.parse(existingRecipes) : [];
 
-      // avoid duplicates of same recipe + difficulty
       const alreadyExists = recipesArray.some(
         (recipe) =>
-          recipe.id === newRecipe.id && recipe.difficulty === newRecipe.difficulty
+          recipe.id === newRecipe.id &&
+          recipe.difficulty === newRecipe.difficulty
       );
 
       if (!alreadyExists) {
@@ -97,6 +115,7 @@ export default function HomeScreen({ navigation }) {
       recipe,
     });
   };
+
   const cuisines = [
     { name: "Italian", image: require("../img/Italy.png") },
     { name: "Japanese", image: require("../img/Japan.png") },
@@ -148,7 +167,7 @@ export default function HomeScreen({ navigation }) {
       const instructionsText = recipeData.strInstructions || "";
 
       const stepsArray = instructionsText
-        .split("\n") 
+        .split("\n")
         .filter((s) => s.trim() !== "")
         .map((s, index) => ({
           number: index + 1,
@@ -171,13 +190,11 @@ export default function HomeScreen({ navigation }) {
         ],
       };
 
-      // save to Firestore
       await setDoc(doc(db, "recipes", recipeId.toString()), {
         ...formattedRecipe,
         createdAt: serverTimestamp(),
       });
 
-      // save to local offline collection
       await saveRecipeLocally(formattedRecipe);
 
       openRecipe(formattedRecipe);
@@ -200,6 +217,10 @@ export default function HomeScreen({ navigation }) {
     <View style={styles.container}>
       <Text style={styles.title}>Foodies</Text>
 
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutText}>Log Out</Text>
+      </TouchableOpacity>
+
       <Text style={styles.label}>Select Cuisine</Text>
       <View style={styles.cuisineContainer}>
         {cuisines.map((item) => (
@@ -207,12 +228,12 @@ export default function HomeScreen({ navigation }) {
             key={item.name}
             style={[
               styles.cuisineButton,
-              cuisine === item.name && styles.selectedCuisine
+              cuisine === item.name && styles.selectedCuisine,
             ]}
             onPress={() => setCuisine(item.name)}
           >
             <Image source={item.image} style={styles.image} />
-            <Text>{item.name}</Text>
+            <Text style={styles.cuisineText}>{item.name}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -241,54 +262,80 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F6E9DB",
+    paddingHorizontal: 20,
   },
 
   title: {
     fontSize: 28,
     marginBottom: 20,
+    fontWeight: "bold",
   },
 
   label: {
     fontSize: 16,
     marginTop: 10,
+    marginBottom: 8,
   },
 
   button: {
     marginTop: 30,
     backgroundColor: "#FB8989",
-    padding: 15,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
     borderRadius: 10,
   },
 
   buttonText: {
     color: "white",
     fontWeight: "bold",
+    fontSize: 16,
   },
+
+  logoutButton: {
+    position: "absolute",
+    top: 60,
+    right: 20,
+    backgroundColor: "#c46a6a",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+  },
+
+  logoutText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+
   cuisineContainer: {
-  flexDirection: "row",
-  flexWrap: "wrap",
-  justifyContent: "center",
-  marginTop: 10,
-},
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    marginTop: 10,
+  },
 
-cuisineButton: {
-  padding: 12,
-  margin: 8,
-  borderRadius: 12,
-  backgroundColor: "#ffffffff",
-  alignItems: "center",
-},
+  cuisineButton: {
+    padding: 12,
+    margin: 8,
+    borderRadius: 12,
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    minWidth: 90,
+  },
 
-selectedCuisine: {
-  borderWidth: 3,
-  borderColor: "#c46a6aff",
-  backgroundColor: "#FB8989",
-},
+  selectedCuisine: {
+    borderWidth: 3,
+    borderColor: "#c46a6a",
+    backgroundColor: "#FB8989",
+  },
 
-image: {
-  width: 60,
-  height: 60,
-  borderRadius: 30,
-  marginBottom: 5,
-},
+  cuisineText: {
+    marginTop: 4,
+  },
+
+  image: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginBottom: 5,
+  },
 });
