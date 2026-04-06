@@ -2,7 +2,6 @@ import { useEffect, useCallback, useState } from "react";
 import {
   StyleSheet,
   Text,
-  SafeAreaView,
   View,
   FlatList,
   TouchableOpacity,
@@ -10,6 +9,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { firebase_auth } from "../firebaseConfig";
 
 export default function GroceryListScreen() {
@@ -103,51 +103,56 @@ export default function GroceryListScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>My Grocery List</Text>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <View style={styles.container}>
+        <Text style={styles.title}>My Grocery List</Text>
 
-      {groceryItems.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Your grocery list is empty.</Text>
-          <Text style={styles.emptySubtext}>
-            Add ingredients from a recipe to see them here.
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={groceryItems}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+        {groceryItems.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Your grocery list is empty.</Text>
+            <Text style={styles.emptySubtext}>
+              Add ingredients from a recipe to see them here.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={groceryItems}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F6E9DB",
+  },
   container: {
     flex: 1,
     backgroundColor: "#F6E9DB",
-    paddingTop: 20,
+    paddingTop: 12,
   },
-
   title: {
     fontSize: 28,
     fontWeight: "bold",
     color: "#2B2B2B",
     textAlign: "center",
     marginBottom: 20,
-    paddingTop: 20,
     paddingHorizontal: 20,
   },
-
   listContent: {
     paddingHorizontal: 20,
     paddingBottom: 24,
+    width: "100%",
+    maxWidth: 720,
+    alignSelf: "center",
   },
-
   itemCard: {
     backgroundColor: "#FFF7F1",
     borderRadius: 18,
@@ -162,51 +167,43 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
-
   itemTextWrap: {
     flex: 1,
     marginRight: 12,
   },
-
   itemName: {
     fontSize: 17,
     fontWeight: "600",
     color: "#2b2b2b",
   },
-
   itemMeasure: {
     marginTop: 4,
     fontSize: 14,
     color: "#8a7a7a",
   },
-
   removeListButton: {
     backgroundColor: "#f8d7d7",
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 10,
   },
-
   removeListButtonText: {
     color: "#b84d4d",
     fontWeight: "bold",
     fontSize: 14,
   },
-
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 24,
   },
-
   emptyText: {
     fontSize: 18,
     fontWeight: "600",
     color: "#666",
     textAlign: "center",
   },
-
   emptySubtext: {
     fontSize: 14,
     color: "#999",
