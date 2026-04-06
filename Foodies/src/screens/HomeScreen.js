@@ -30,8 +30,6 @@ export default function HomeScreen({ navigation }) {
   const handleLogout = async () => {
     try {
       await signOut(firebase_auth);
-      await AsyncStorage.removeItem("isLoggedIn");
-      await AsyncStorage.removeItem("userEmail");
     } catch (error) {
       console.log("Logout error:", error);
       Alert.alert("Logout Error", "Could not log out.");
@@ -242,7 +240,7 @@ export default function HomeScreen({ navigation }) {
       <Picker
         selectedValue={difficulty}
         onValueChange={(itemValue) => setDifficulty(itemValue)}
-        style={{ width: 200 }}
+        style={styles.picker}
       >
         <Picker.Item label="Easy" value="Easy" />
         <Picker.Item label="Medium" value="Medium" />
@@ -275,6 +273,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 10,
     marginBottom: 8,
+  },
+
+  picker: {
+    width: 200,
   },
 
   button: {
