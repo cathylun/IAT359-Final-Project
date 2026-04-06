@@ -4,6 +4,7 @@ import { StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
 import { db } from "../firebaseConfig.js";
 import { Picker } from "@react-native-picker/picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Image } from "react-native";
 
 export default function HomeScreen({ navigation }) {
   const [cuisine, setCuisine] = useState("Italian");
@@ -96,6 +97,13 @@ export default function HomeScreen({ navigation }) {
       recipe,
     });
   };
+  const cuisines = [
+    { name: "Italian", image: require("../img/Italy.png") },
+    { name: "Japanese", image: require("../img/Japan.png") },
+    { name: "Chinese", image: require("../img/China.png") },
+    { name: "Mexican", image: require("../img/Mexico.png") },
+    { name: "Greek", image: require("../img/Greek.png") },
+  ];
 
   const getRecipe = async () => {
     try {
@@ -140,7 +148,7 @@ export default function HomeScreen({ navigation }) {
       const instructionsText = recipeData.strInstructions || "";
 
       const stepsArray = instructionsText
-        .split("\n")
+        .split("\n") 
         .filter((s) => s.trim() !== "")
         .map((s, index) => ({
           number: index + 1,
@@ -193,17 +201,21 @@ export default function HomeScreen({ navigation }) {
       <Text style={styles.title}>Foodies</Text>
 
       <Text style={styles.label}>Select Cuisine</Text>
-      <Picker
-        selectedValue={cuisine}
-        onValueChange={(itemValue) => setCuisine(itemValue)}
-        style={{ width: 200 }}
-      >
-        <Picker.Item label="Italian" value="Italian" />
-        <Picker.Item label="Japanese" value="Japanese" />
-        <Picker.Item label="Chinese" value="Chinese" />
-        <Picker.Item label="Mexican" value="Mexican" />
-        <Picker.Item label="Korean" value="Korean" />
-      </Picker>
+      <View style={styles.cuisineContainer}>
+        {cuisines.map((item) => (
+          <TouchableOpacity
+            key={item.name}
+            style={[
+              styles.cuisineButton,
+              cuisine === item.name && styles.selectedCuisine
+            ]}
+            onPress={() => setCuisine(item.name)}
+          >
+            <Image source={item.image} style={styles.image} />
+            <Text>{item.name}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       <Text style={styles.label}>Select Difficulty</Text>
       <Picker
@@ -228,6 +240,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#F6E9DB",
   },
 
   title: {
@@ -242,7 +255,7 @@ const styles = StyleSheet.create({
 
   button: {
     marginTop: 30,
-    backgroundColor: "#007AFF",
+    backgroundColor: "#FB8989",
     padding: 15,
     borderRadius: 10,
   },
@@ -251,4 +264,31 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
+  cuisineContainer: {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  justifyContent: "center",
+  marginTop: 10,
+},
+
+cuisineButton: {
+  padding: 12,
+  margin: 8,
+  borderRadius: 12,
+  backgroundColor: "#ffffffff",
+  alignItems: "center",
+},
+
+selectedCuisine: {
+  borderWidth: 3,
+  borderColor: "#c46a6aff",
+  backgroundColor: "#FB8989",
+},
+
+image: {
+  width: 60,
+  height: 60,
+  borderRadius: 30,
+  marginBottom: 5,
+},
 });
