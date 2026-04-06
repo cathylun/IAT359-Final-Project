@@ -6,10 +6,10 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { firebase_auth } from "./src/firebaseConfig";
 import SignInScreen from "./src/screens/SignInScreen";
+import CreateAccountScreen from "./src/screens/CreateAccountScreen";
 import HomeScreen from "./src/screens/HomeScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import GroceryListScreen from "./src/screens/GroceryListScreen";
-
 import DishIntroScreen from "./src/screens/DishIntroScreen";
 import IngredientScreen from "./src/screens/IngredientScreen";
 import CookingScreen from "./src/screens/CookingScreen";
@@ -43,18 +43,18 @@ function ProtectedLayout({ photos }) {
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [photos, setPhotos] = useState([]);
+
   const addPhoto = (photo) => {
     setPhotos((prev) => [...prev, photo]);
   };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(firebase_auth, (user) => {
-      console.log("user", user);
       setUser(user);
       setLoading(false);
     });
+
     return unsubscribe;
   }, []);
 
@@ -76,11 +76,18 @@ export default function App() {
             </Stack.Screen>
           </>
         ) : (
-          <Stack.Screen
-            name="SignIn"
-            component={SignInScreen}
-            options={{ headerShown: false }}
-          />
+          <>
+            <Stack.Screen
+              name="SignIn"
+              component={SignInScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="CreateAccount"
+              component={CreateAccountScreen}
+              options={{ headerShown: false }}
+            />
+          </>
         )}
       </Stack.Navigator>
     </NavigationContainer>
