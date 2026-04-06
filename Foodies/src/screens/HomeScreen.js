@@ -333,7 +333,7 @@ export default function HomeScreen({ navigation }) {
       </View>
 
       <TouchableOpacity style={styles.primaryButton} onPress={getRecipe}>
-        <Text style={styles.primaryButtonText}>Make Food</Text>
+        <Text style={styles.primaryButtonText}>Start Cooking!</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
