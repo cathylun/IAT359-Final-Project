@@ -12,39 +12,44 @@ export default function CookingScreen({ route, navigation }) {
   const steps = recipe.analyzedInstructions[0]?.steps || [];
   // get cooking steps, if nothing there than use empty array
   
+
   const actionGifs = [
   { keyword: "slice", gif: require("../gif/cutting.gif") },
   { keyword: "cut", gif: require("../gif/cutting.gif") },
   { keyword: "chop", gif: require("../gif/cutting.gif") },
-
-  // { keyword: "boil", gif: require("../gif/cutting.gif") },
-  // { keyword: "simmer", gif: require("../gif/cutting.gif") },
-  // { keyword: "steam", gif: require("../gif/cutting.gif") },
 
   { keyword: "oven", gif: require("../gif/putinoven.gif") },
   { keyword: "preheat", gif: require("../gif/preheat.gif") },
 
   { keyword: "sit", gif: require("../gif/sit.gif") },
 
+  { keyword: "boil", gif: require("../gif/boil.gif") },
 
-
-  { keyword: "whisk", gif: require("../gif/whisk.gif") },
-
-
+  { keyword: "add", gif: require("../gif/adding.gif") },
+  { keyword: "mix", gif: require("../gif/whisk.gif") },
+  { keyword: "stir", gif: require("../gif/stir.gif") },
+  { keyword: "sauce", gif: require("../gif/sauce.gif") },
 
   ];
 
-  const getGifForStep = (stepText) => {
+const getGifForStep = (stepText) => {
   const lower = stepText.toLowerCase();
 
   for (let action of actionGifs) {
     if (lower.includes(action.keyword)) {
-      return action.gif;
+      return {
+        source: action.gif,
+        style: styles.gifImage,
+      };
     }
   }
 
-  return null;
+  return {
+    source: require("../gif/maindude.png"),
+    style: styles.mainImage,
+  };
 };
+
   return (
     <ScrollView style={styles.container}> 
 
@@ -54,22 +59,20 @@ export default function CookingScreen({ route, navigation }) {
 
       {steps.map((step) => {
         const cleanText = step.step.replace(/Step\s*\d+:\s*/i, "");
-        const gif = getGifForStep(cleanText);
+      const imageData = getGifForStep(cleanText);
+
 
         return (
           <View key={step.number} style={{ marginTop: 15 }}>
             
           <Text style={styles.step}>
-            Step {step.number}: {cleanText}
+            {cleanText}
           </Text>
 
-            {gif && (
-              <Image
-                source={gif}
-                style={{ width: 120, height: 120, marginTop: 5 }}
-              />
-            )}
-
+          <Image
+            source={imageData.source}
+            style={imageData.style}
+          />
           </View>
         );
       })}
@@ -126,5 +129,23 @@ const styles = StyleSheet.create({
     color: "white",
     textAlign: "center",
     fontWeight: "bold",
+  },
+  stepContainer: {
+  marginTop: 15,
+  },
+  gifImage: {
+    width: 80,
+    height: 80,
+    marginTop: 5,
+    alignSelf: "center",
+
+  },
+
+  mainImage: {
+    width: 50,
+    height: 50,
+    marginTop: 10,
+    alignSelf: "center",
+    marginBottom: -10,
   },
 });
