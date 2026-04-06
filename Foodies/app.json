@@ -13,9 +13,14 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "bundleIdentifier": "com.foodies.foodfromhome",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "supportsTablet": true
     },
     "android": {
+      "package": "com.foodies.foodfromhome",
+      "googleServicesFile": "./google-services.json",
+
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -26,6 +31,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#ffffff",
+          "sounds": []
+        }
+      ]
     ]
   }
 }
