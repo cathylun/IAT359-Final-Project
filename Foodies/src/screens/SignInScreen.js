@@ -1,7 +1,4 @@
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
 import {
   Alert,
@@ -12,41 +9,17 @@ import {
   TextInput,
   View,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { firebase_auth } from "../firebaseConfig";
 
-export default function SignInScreen() {
+export default function SignInScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const auth = firebase_auth;
 
-  async function saveLoginLocally(userEmail) {
-    try {
-      await AsyncStorage.setItem("isLoggedIn", "true");
-      await AsyncStorage.setItem("userEmail", userEmail);
-    } catch (error) {
-      console.log("Error saving login locally:", error);
-    }
-  }
-
-  async function handleSignUp() {
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      await saveLoginLocally(email);
-
-      Alert.alert("Sign up success", `User: ${email} signed up.`);
-    } catch (error) {
-      console.log(error.message);
-      Alert.alert("Sign Up Error", error.message);
-    }
-  }
-
   async function handleSignIn() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      await saveLoginLocally(email);
-
       Alert.alert("Sign in success", `User: ${email} signed in.`);
     } catch (error) {
       console.log(error.message);
@@ -63,6 +36,7 @@ export default function SignInScreen() {
           style={styles.logo}
           source={require("../../assets/prettierBowl.png")}
         />
+
         <Text style={styles.inputHeader}>Email:</Text>
         <TextInput
           style={styles.input}
@@ -83,11 +57,15 @@ export default function SignInScreen() {
       </View>
 
       <View style={styles.buttonLogin}>
-        <Button title="Sign In" onPress={handleSignIn} color={"#FFFFFF"} />
+        <Button title="Sign In" onPress={handleSignIn} color="#FFFFFF" />
       </View>
 
       <View style={styles.buttonContainer}>
-        <Button title="Sign Up" onPress={handleSignUp} color={"#FC8585"} />
+        <Button
+          title="Create Account"
+          onPress={() => navigation.navigate("CreateAccount")}
+          color="#FC8585"
+        />
       </View>
     </View>
   );
@@ -108,7 +86,6 @@ const styles = StyleSheet.create({
   },
 
   inputContainer: {
-    display: "flex",
     justifyContent: "center",
     marginHorizontal: 56,
   },
@@ -120,6 +97,7 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
     paddingBottom: 24,
   },
+
   inputHeader: {
     fontSize: 16,
     marginBottom: 12,
@@ -133,6 +111,7 @@ const styles = StyleSheet.create({
     textAlign: "left",
     borderBottomWidth: 1,
   },
+
   buttonLogin: {
     marginTop: 24,
     backgroundColor: "#FC8585",
