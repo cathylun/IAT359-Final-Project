@@ -2,12 +2,17 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
 import {
   Alert,
-  Button,
-  StyleSheet,
   Image,
   Text,
   TextInput,
   View,
+  StyleSheet,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { firebase_auth } from "../firebaseConfig";
 
@@ -28,98 +33,157 @@ export default function SignInScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Food From Home</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.card}>
+            <Image
+              style={styles.logo}
+              source={require("../gif/maindude.png")}
+            />
 
-      <View style={styles.inputContainer}>
-        <Image
-          style={styles.logo}
-          source={require("../../assets/prettierBowl.png")}
-        />
+            <Text style={styles.header}>Food From Home</Text>
+            <Text style={styles.subtext}>
+              Sign in to keep cooking with your saved preferences and dishes.
+            </Text>
 
-        <Text style={styles.inputHeader}>Email:</Text>
-        <TextInput
-          style={styles.input}
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-        />
+            <Text style={styles.inputHeader}>Email</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              placeholder="Enter your email"
+              placeholderTextColor="#b9a8a8"
+            />
 
-        <Text style={styles.inputHeader}>Password:</Text>
-        <TextInput
-          style={styles.input}
-          secureTextEntry={true}
-          value={password}
-          onChangeText={setPassword}
-          autoCapitalize="none"
-        />
-      </View>
+            <Text style={styles.inputHeader}>Password</Text>
+            <TextInput
+              style={styles.input}
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+              autoCapitalize="none"
+              placeholder="Enter your password"
+              placeholderTextColor="#b9a8a8"
+            />
 
-      <View style={styles.buttonLogin}>
-        <Button title="Sign In" onPress={handleSignIn} color="#FFFFFF" />
-      </View>
+            <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
+              <Text style={styles.signInButtonText}>Sign In</Text>
+            </TouchableOpacity>
 
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Create Account"
-          onPress={() => navigation.navigate("CreateAccount")}
-          color="#FC8585"
-        />
-      </View>
-    </View>
+            <TouchableOpacity
+              style={styles.createAccountButton}
+              onPress={() => navigation.navigate("CreateAccount")}
+            >
+              <Text style={styles.createAccountText}>Create Account</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  flex: {
     flex: 1,
-    justifyContent: "center",
-    padding: 16,
     backgroundColor: "#F6EADB",
   },
-  header: {
-    fontSize: 36,
-    marginBottom: 24,
-    color: "#FC8585",
-    textAlign: "center",
+
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingVertical: 40,
+    paddingHorizontal: 20,
   },
 
-  inputContainer: {
-    justifyContent: "center",
-    marginHorizontal: 56,
+  card: {
+    backgroundColor: "#FFF7F1",
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
 
   logo: {
     alignSelf: "center",
-    width: 160,
-    height: 160,
+    width: 260,
+    height: 140,
     resizeMode: "contain",
-    paddingBottom: 24,
+    marginBottom: 10,
+  },
+
+  header: {
+    fontSize: 34,
+    fontWeight: "bold",
+    color: "#FC8585",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+
+  subtext: {
+    fontSize: 14,
+    color: "#9e7f7f",
+    textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 20,
   },
 
   inputHeader: {
     fontSize: 16,
-    marginBottom: 12,
+    fontWeight: "600",
     color: "#FC8585",
-    textAlign: "left",
+    marginBottom: 8,
+    marginTop: 10,
   },
 
   input: {
-    marginBottom: 24,
-    paddingBottom: 4,
-    textAlign: "left",
-    borderBottomWidth: 1,
+    backgroundColor: "#ffffff",
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#f1d6d6",
+    marginBottom: 14,
+    color: "#333",
   },
 
-  buttonLogin: {
-    marginTop: 24,
+  signInButton: {
+    marginTop: 14,
     backgroundColor: "#FC8585",
-    marginHorizontal: 96,
-    borderRadius: 99,
+    paddingVertical: 16,
+    borderRadius: 18,
+    alignItems: "center",
   },
 
-  buttonContainer: {
-    padding: 20,
+  signInButtonText: {
+    color: "#ffffff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+
+  createAccountButton: {
+    marginTop: 14,
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+
+  createAccountText: {
+    color: "#c46a6a",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
