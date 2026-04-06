@@ -1,14 +1,16 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { StyleSheet } from "react-native";
 
 export default function IngredientScreen({ route, navigation }) {
 
   const { recipe } = route.params;
   const ingredients = recipe.ingredients || [];
 
-  return (
-    <ScrollView style={{ padding: 20 }}>
+return (
+  <View style={styles.container}>
+    <ScrollView contentContainerStyle={{ padding: 20 }}>
 
-      <Text style={{ fontSize: 22, fontWeight: "bold" }}>
+      <Text style={styles.title}>
         Ingredients
       </Text>
 
@@ -22,20 +24,41 @@ export default function IngredientScreen({ route, navigation }) {
         ))
       )}
 
-      <TouchableOpacity
-        style={{
-          marginTop: 30,
-          backgroundColor: "#007AFF",
-          padding: 15,
-          borderRadius: 10
-        }}
-        onPress={() => navigation.navigate("Cooking", { recipe })}
-      >
-        <Text style={{ color: "white", textAlign: "center" }}>
-          Start Cooking
-        </Text>
-      </TouchableOpacity>
+    <TouchableOpacity
+      style={styles.button}
+      onPress={() => navigation.navigate("Cooking", { recipe })}
+    >
+      <Text style={styles.buttonText}>
+        Start Cooking
+      </Text>
+    </TouchableOpacity>
 
     </ScrollView>
+  </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F6E9DB", 
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+  },
+  
+  button: {
+  marginTop: 30,
+  backgroundColor: "#FB8989",
+  padding: 15,
+  borderRadius: 10,
+  },
+
+  buttonText: {
+    color: "white",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+});
+

@@ -9,6 +9,7 @@ export default function GroceryListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
+  container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#F6E9DB",
+ },
   title: { fontSize: 24 },
 });
