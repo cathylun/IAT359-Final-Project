@@ -62,7 +62,7 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="SignIn">
+      <Stack.Navigator>
         {user ? (
           <>
             <Stack.Screen name="ProtectedArea" options={{ headerShown: false }}>

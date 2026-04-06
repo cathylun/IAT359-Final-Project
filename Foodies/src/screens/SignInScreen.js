@@ -12,6 +12,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { firebase_auth } from "../firebaseConfig";
 
 export default function SignInScreen() {
@@ -20,16 +21,21 @@ export default function SignInScreen() {
 
   const auth = firebase_auth;
 
+  async function saveLoginLocally(userEmail) {
+    try {
+      await AsyncStorage.setItem("isLoggedIn", "true");
+      await AsyncStorage.setItem("userEmail", userEmail);
+    } catch (error) {
+      console.log("Error saving login locally:", error);
+    }
+  }
+
   async function handleSignUp() {
     try {
-      const response = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      await createUserWithEmailAndPassword(auth, email, password);
+      await saveLoginLocally(email);
 
-      console.log(response);
-      Alert.alert("Sign up success. User: " + email + " signed up.");
+      Alert.alert("Sign up success", `User: ${email} signed up.`);
     } catch (error) {
       console.log(error.message);
       Alert.alert("Sign Up Error", error.message);
@@ -38,9 +44,10 @@ export default function SignInScreen() {
 
   async function handleSignIn() {
     try {
-      const response = await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email, password);
+      await saveLoginLocally(email);
 
-      Alert.alert("User: " + email + " signed in");
+      Alert.alert("Sign in success", `User: ${email} signed in.`);
     } catch (error) {
       console.log(error.message);
       Alert.alert("Sign In Error", error.message);
@@ -59,18 +66,19 @@ export default function SignInScreen() {
         <Text style={styles.inputHeader}>Email:</Text>
         <TextInput
           style={styles.input}
-          keyboardType="email-address" // optimizes keyboard for email entry (@ symbol)
+          keyboardType="email-address"
           value={email}
-          onChangeText={setEmail} // updates state on every keystroke
-          autoCapitalize="none" // important! Prevents auto-capitalizing the first letter of emails
+          onChangeText={setEmail}
+          autoCapitalize="none"
         />
-        {/* Password Input */}
+
         <Text style={styles.inputHeader}>Password:</Text>
         <TextInput
           style={styles.input}
-          secureTextEntry={true} // hides text for security (dots/asterisks)
+          secureTextEntry={true}
           value={password}
           onChangeText={setPassword}
+          autoCapitalize="none"
         />
       </View>
 
@@ -127,8 +135,6 @@ const styles = StyleSheet.create({
   },
   buttonLogin: {
     marginTop: 24,
-    textDecorationLines: "none",
-    color: "#FFFFFF",
     backgroundColor: "#FC8585",
     marginHorizontal: 96,
     borderRadius: 99,
