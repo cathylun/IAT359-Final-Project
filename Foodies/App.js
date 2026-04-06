@@ -1,9 +1,10 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { StyleSheet } from "react-native";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
+import { Ionicons } from "@expo/vector-icons";
+
 import { firebase_auth } from "./src/firebaseConfig";
 import SignInScreen from "./src/screens/SignInScreen";
 import CreateAccountScreen from "./src/screens/CreateAccountScreen";
@@ -15,7 +16,6 @@ import IngredientScreen from "./src/screens/IngredientScreen";
 import CookingScreen from "./src/screens/CookingScreen";
 import CameraScreen from "./src/screens/CameraScreen";
 import CookedDishesScreen from "./src/screens/CookedDishesScreen";
-import { Ionicons } from "@expo/vector-icons";
 
 const ProtectedTab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -33,13 +33,13 @@ function ProtectedLayout({ photos }) {
           paddingTop: 10,
           paddingBottom: 12,
         },
-        tabBarIcon: ({ focused, size }) => {
+        tabBarIcon: ({ focused }) => {
           let iconName;
 
           if (route.name === "Home") {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "Profile") {
-            iconName = focused ? "book" : "book-outline";
+            iconName = focused ? "person" : "person-outline";
           } else if (route.name === "Grocery") {
             iconName = focused ? "cart" : "cart-outline";
           }
@@ -60,10 +60,7 @@ function ProtectedLayout({ photos }) {
         {(props) => <ProfileScreen {...props} photos={photos} />}
       </ProtectedTab.Screen>
 
-      <ProtectedTab.Screen
-        name="Grocery"
-        component={GroceryListScreen}
-      />
+      <ProtectedTab.Screen name="Grocery" component={GroceryListScreen} />
     </ProtectedTab.Navigator>
   );
 }
@@ -90,12 +87,18 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator
+        screenOptions={{
+          animation: "none",
+          headerShown: false,
+        }}
+      >
         {user ? (
           <>
-            <Stack.Screen name="ProtectedArea" options={{ headerShown: false }}>
+            <Stack.Screen name="ProtectedArea">
               {(props) => <ProtectedLayout {...props} photos={photos} />}
             </Stack.Screen>
+
             <Stack.Screen name="DishIntro" component={DishIntroScreen} />
             <Stack.Screen name="Ingredients" component={IngredientScreen} />
             <Stack.Screen name="Cooking" component={CookingScreen} />
@@ -106,15 +109,10 @@ export default function App() {
           </>
         ) : (
           <>
-            <Stack.Screen
-              name="SignIn"
-              component={SignInScreen}
-              options={{ headerShown: false }}
-            />
+            <Stack.Screen name="SignIn" component={SignInScreen} />
             <Stack.Screen
               name="CreateAccount"
               component={CreateAccountScreen}
-              options={{ headerShown: false }}
             />
           </>
         )}
@@ -122,12 +120,3 @@ export default function App() {
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
