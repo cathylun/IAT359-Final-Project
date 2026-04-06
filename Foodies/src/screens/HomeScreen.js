@@ -45,13 +45,29 @@ export default function HomeScreen({ navigation }) {
     return `selectedDifficulty_${user.uid}`;
   };
 
-  const handleLogout = async () => {
-    try {
-      await signOut(firebase_auth);
-    } catch (error) {
-      console.log("Logout error:", error);
-      Alert.alert("Logout Error", "Could not log out.");
-    }
+  const handleLogout = () => {
+    Alert.alert(
+      "Log Out",
+      "Are you sure you want to log out?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Log Out",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await signOut(firebase_auth);
+            } catch (error) {
+              console.log("Logout error:", error);
+              Alert.alert("Logout Error", "Could not log out.");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const loadSavedPreferences = async () => {

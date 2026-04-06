@@ -11,6 +11,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { firebase_auth } from "../firebaseConfig";
 import { useFocusEffect } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function CookedDishesScreen({ navigation }) {
   const [savedRecipes, setSavedRecipes] = useState([]);
@@ -127,6 +128,16 @@ export default function CookedDishesScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <View style={styles.topBar}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Ionicons name="chevron-back" size={22} color="#F48F92" />
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+      </View>
+
       <Text style={styles.header}>Previously Cooked Dishes</Text>
 
       {savedRecipes.length === 0 ? (
@@ -139,6 +150,7 @@ export default function CookedDishesScreen({ navigation }) {
           keyExtractor={(item, index) => `${item.id}-${item.difficulty}-${index}`}
           renderItem={renderRecipe}
           contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
@@ -150,12 +162,29 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F6E9DB",
     padding: 20,
+    paddingTop: 60,
+  },
+
+  topBar: {
+    marginBottom: 12,
+  },
+
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+  },
+
+  backText: {
+    color: "#F48F92",
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 2,
   },
 
   header: {
     fontSize: 28,
     fontWeight: "bold",
-    marginTop: 40,
     marginBottom: 20,
     textAlign: "center",
     color: "#c46a6a",
