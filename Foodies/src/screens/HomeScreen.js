@@ -9,6 +9,7 @@ import {
   Image,
   ScrollView,
 } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { db, firebase_auth } from "../firebaseConfig.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { signOut } from "firebase/auth";
@@ -17,6 +18,8 @@ export default function HomeScreen({ navigation }) {
   const [cuisine, setCuisine] = useState("Italian");
   const [difficulty, setDifficulty] = useState("Easy");
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     loadSavedPreferences();
@@ -46,28 +49,21 @@ export default function HomeScreen({ navigation }) {
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      "Log Out",
-      "Are you sure you want to log out?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
+    Alert.alert("Log Out", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log Out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await signOut(firebase_auth);
+          } catch (error) {
+            console.log("Logout error:", error);
+            Alert.alert("Logout Error", "Could not log out.");
+          }
         },
-        {
-          text: "Log Out",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await signOut(firebase_auth);
-            } catch (error) {
-              console.log("Logout error:", error);
-              Alert.alert("Logout Error", "Could not log out.");
-            }
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
   const loadSavedPreferences = async () => {
@@ -109,11 +105,7 @@ export default function HomeScreen({ navigation }) {
   const saveRecipeLocally = async (newRecipe) => {
     try {
       const storageKey = getUserRecipesKey();
-
-      if (!storageKey) {
-        console.log("No logged-in user found.");
-        return;
-      }
+      if (!storageKey) return;
 
       const existingRecipes = await AsyncStorage.getItem(storageKey);
       let recipesArray = existingRecipes ? JSON.parse(existingRecipes) : [];
@@ -141,11 +133,7 @@ export default function HomeScreen({ navigation }) {
   const getOfflineRecipe = async () => {
     try {
       const storageKey = getUserRecipesKey();
-
-      if (!storageKey) {
-        console.log("No logged-in user found.");
-        return null;
-      }
+      if (!storageKey) return null;
 
       const savedRecipes = await AsyncStorage.getItem(storageKey);
       const recipesArray = savedRecipes ? JSON.parse(savedRecipes) : [];
@@ -164,10 +152,9 @@ export default function HomeScreen({ navigation }) {
         return null;
       }
 
-      const randomRecipe =
-        matchingRecipes[Math.floor(Math.random() * matchingRecipes.length)];
-
-      return randomRecipe;
+      return matchingRecipes[
+        Math.floor(Math.random() * matchingRecipes.length)
+      ];
     } catch (error) {
       console.log("Error loading offline recipe:", error);
       return null;
@@ -175,9 +162,7 @@ export default function HomeScreen({ navigation }) {
   };
 
   const openRecipe = (recipe) => {
-    navigation.navigate("DishIntro", {
-      recipe,
-    });
+    navigation.navigate("DishIntro", { recipe });
   };
 
   const cuisines = [
@@ -249,11 +234,7 @@ export default function HomeScreen({ navigation }) {
         summary: `${recipeData.strMeal} is a ${recipeData.strArea} dish. Try making this ${difficulty.toLowerCase()} recipe at home.`,
         instructions: instructionsText,
         ingredients: ingredients,
-        analyzedInstructions: [
-          {
-            steps: stepsArray,
-          },
-        ],
+        analyzedInstructions: [{ steps: stepsArray }],
       };
 
       await setDoc(doc(db, "recipes", recipeId.toString()), {
@@ -279,134 +260,156 @@ export default function HomeScreen({ navigation }) {
   };
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={styles.headerRow}>
-        <View>
-          <Text style={styles.greeting}>Ready to cook?</Text>
-          <Text style={styles.title}>Choose your next dish</Text>
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea} edges={["top"]}>
+        <View style={styles.headerRow}>
+          <View style={styles.headerTextWrap}>
+            <Text style={styles.greeting}>Ready to cook?</Text>
+            <Text style={styles.title}>Choose your next dish</Text>
+          </View>
+
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutText}>Log Out</Text>
+          </TouchableOpacity>
         </View>
-
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Select Cuisine</Text>
-
-        <View style={styles.cuisineContainer}>
-          {cuisines.map((item) => (
-            <TouchableOpacity
-              key={item.name}
-              style={[
-                styles.cuisineButton,
-                cuisine === item.name && styles.selectedCuisine,
-              ]}
-              onPress={() => setCuisine(item.name)}
-            >
-              <Image source={item.image} style={styles.image} />
-              <Text
-                style={[
-                  styles.cuisineText,
-                  cuisine === item.name && styles.selectedCuisineText,
-                ]}
-              >
-                {item.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.sectionCard}>
-        <Text style={styles.sectionTitle}>Select Difficulty</Text>
-
-        <View style={styles.difficultyRow}>
-          {difficultyOptions.map((item) => (
-            <TouchableOpacity
-              key={item}
-              style={[
-                styles.difficultyButton,
-                difficulty === item && styles.selectedDifficultyButton,
-              ]}
-              onPress={() => setDifficulty(item)}
-            >
-              <Text
-                style={[
-                  styles.difficultyText,
-                  difficulty === item && styles.selectedDifficultyText,
-                ]}
-              >
-                {item}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      <TouchableOpacity style={styles.primaryButton} onPress={getRecipe}>
-        <Text style={styles.primaryButtonText}>Start Cooking!</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.secondaryButton}
-        onPress={() => navigation.navigate("CookedDishes")}
+      </SafeAreaView>
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: 12,
+            paddingBottom: Math.max(insets.bottom, 24) + 110,
+          },
+        ]}
+        showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="never"
       >
-        <Text style={styles.secondaryButtonText}>Previously Cooked Dishes</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <View style={styles.content}>
+
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>Select Cuisine</Text>
+
+            <View style={styles.cuisineContainer}>
+              {cuisines.map((item) => (
+                <TouchableOpacity
+                  key={item.name}
+                  style={[
+                    styles.cuisineButton,
+                    cuisine === item.name && styles.selectedCuisine,
+                  ]}
+                  onPress={() => setCuisine(item.name)}
+                >
+                  <Image source={item.image} style={styles.image} />
+                  <Text
+                    style={[
+                      styles.cuisineText,
+                      cuisine === item.name && styles.selectedCuisineText,
+                    ]}
+                  >
+                    {item.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>Select Difficulty</Text>
+
+            <View style={styles.difficultyRow}>
+              {difficultyOptions.map((item) => (
+                <TouchableOpacity
+                  key={item}
+                  style={[
+                    styles.difficultyButton,
+                    difficulty === item && styles.selectedDifficultyButton,
+                  ]}
+                  onPress={() => setDifficulty(item)}
+                >
+                  <Text
+                    style={[
+                      styles.difficultyText,
+                      difficulty === item && styles.selectedDifficultyText,
+                    ]}
+                  >
+                    {item}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          <TouchableOpacity style={styles.primaryButton} onPress={getRecipe}>
+            <Text style={styles.primaryButtonText}>Cook Food</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={() => navigation.navigate("CookedDishes")}
+          >
+            <Text style={styles.secondaryButtonText}>
+              Previously Cooked Dishes
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F6E9DB",
+  },
+  safeArea: {
+    backgroundColor: "#F6E9DB",
+  },
   screen: {
     flex: 1,
     backgroundColor: "#F6E9DB",
   },
-
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 70,
-    paddingBottom: 30,
   },
-
+  content: {
+    width: "100%",
+    maxWidth: 720,
+    alignSelf: "center",
+  },
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
     marginBottom: 22,
+    paddingHorizontal: 20,
   },
-
+  headerTextWrap: {
+    flex: 1,
+    marginRight: 12,
+  },
   greeting: {
     fontSize: 15,
     color: "#9d7d7d",
     marginBottom: 4,
   },
-
   title: {
     fontSize: 30,
     fontWeight: "bold",
     color: "#2b2b2b",
-    maxWidth: 220,
   },
-
   logoutButton: {
     backgroundColor: "#CB7478",
     paddingVertical: 12,
     paddingHorizontal: 18,
     borderRadius: 16,
   },
-
   logoutText: {
     color: "#fff",
     fontWeight: "bold",
     fontSize: 15,
   },
-
   sectionCard: {
     backgroundColor: "#FFF7F1",
     borderRadius: 24,
@@ -418,7 +421,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 3,
   },
-
   sectionTitle: {
     fontSize: 24,
     fontWeight: "bold",
@@ -426,13 +428,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: "center",
   },
-
   cuisineContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
   },
-
   cuisineButton: {
     width: "30%",
     minWidth: 92,
@@ -445,12 +445,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "transparent",
   },
-
   selectedCuisine: {
     backgroundColor: "#F48F92",
     borderColor: "#C96C70",
   },
-
   cuisineText: {
     marginTop: 8,
     fontSize: 15,
@@ -458,24 +456,20 @@ const styles = StyleSheet.create({
     color: "#222",
     textAlign: "center",
   },
-
   selectedCuisineText: {
     color: "#1f1f1f",
   },
-
   image: {
     width: 58,
     height: 58,
     borderRadius: 29,
     marginBottom: 4,
   },
-
   difficultyRow: {
     flexDirection: "row",
     justifyContent: "center",
     flexWrap: "wrap",
   },
-
   difficultyButton: {
     backgroundColor: "#EFE3D8",
     paddingVertical: 14,
@@ -486,21 +480,17 @@ const styles = StyleSheet.create({
     minWidth: 92,
     alignItems: "center",
   },
-
   selectedDifficultyButton: {
     backgroundColor: "#F48F92",
   },
-
   difficultyText: {
     fontSize: 16,
     fontWeight: "700",
     color: "#4d4d4d",
   },
-
   selectedDifficultyText: {
     color: "#fff",
   },
-
   primaryButton: {
     backgroundColor: "#F48F92",
     paddingVertical: 18,
@@ -508,13 +498,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 6,
   },
-
   primaryButtonText: {
     color: "#fff",
     fontSize: 22,
     fontWeight: "bold",
   },
-
   secondaryButton: {
     marginTop: 14,
     backgroundColor: "#fff",
@@ -524,7 +512,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#D07A7D",
   },
-
   secondaryButtonText: {
     color: "#C96C70",
     fontSize: 20,

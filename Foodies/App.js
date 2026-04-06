@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { firebase_auth } from "./src/firebaseConfig";
 import SignInScreen from "./src/screens/SignInScreen";
@@ -21,6 +22,8 @@ const ProtectedTab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function ProtectedLayout({ photos }) {
+  const insets = useSafeAreaInsets();
+
   return (
     <ProtectedTab.Navigator
       screenOptions={({ route }) => ({
@@ -29,9 +32,9 @@ function ProtectedLayout({ photos }) {
         tabBarStyle: {
           backgroundColor: "#FFF7F1",
           borderTopWidth: 0,
-          height: 82,
-          paddingTop: 10,
-          paddingBottom: 12,
+          height: 50 + insets.bottom,
+          paddingTop: 8,
+          paddingBottom: Math.max(insets.bottom, 2),
         },
         tabBarIcon: ({ focused }) => {
           let iconName;
@@ -47,7 +50,7 @@ function ProtectedLayout({ photos }) {
           return (
             <Ionicons
               name={iconName}
-              size={28}
+              size={26}
               color={focused ? "#F48F92" : "#9D9D9D"}
             />
           );
@@ -55,17 +58,15 @@ function ProtectedLayout({ photos }) {
       })}
     >
       <ProtectedTab.Screen name="Home" component={HomeScreen} />
-
       <ProtectedTab.Screen name="Profile">
         {(props) => <ProfileScreen {...props} photos={photos} />}
       </ProtectedTab.Screen>
-
       <ProtectedTab.Screen name="Grocery" component={GroceryListScreen} />
     </ProtectedTab.Navigator>
   );
 }
 
-export default function App() {
+function RootNavigator() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [photos, setPhotos] = useState([]);
@@ -98,7 +99,6 @@ export default function App() {
             <Stack.Screen name="ProtectedArea">
               {(props) => <ProtectedLayout {...props} photos={photos} />}
             </Stack.Screen>
-
             <Stack.Screen name="DishIntro" component={DishIntroScreen} />
             <Stack.Screen name="Ingredients" component={IngredientScreen} />
             <Stack.Screen name="Cooking" component={CookingScreen} />
@@ -118,5 +118,13 @@ export default function App() {
         )}
       </Stack.Navigator>
     </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <RootNavigator />
+    </SafeAreaProvider>
   );
 }
