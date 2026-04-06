@@ -11,6 +11,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { firebase_auth } from "../firebaseConfig";
 import { useFocusEffect } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function CookedDishesScreen({ navigation }) {
@@ -127,108 +128,106 @@ export default function CookedDishesScreen({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.topBar}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Ionicons name="chevron-back" size={22} color="#F48F92" />
-          <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <View style={styles.container}>
+        <View style={styles.topBar}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Ionicons name="chevron-back" size={22} color="#F48F92" />
+            <Text style={styles.backText}>Back</Text>
+          </TouchableOpacity>
+        </View>
+
+        {savedRecipes.length === 0 ? (
+          <Text style={styles.emptyText}>
+            You have not cooked any saved dishes yet.
+          </Text>
+        ) : (
+          <FlatList
+            data={savedRecipes}
+            keyExtractor={(item, index) => `${item.id}-${item.difficulty}-${index}`}
+            renderItem={renderRecipe}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </View>
-
-      <Text style={styles.header}>Previously Cooked Dishes</Text>
-
-      {savedRecipes.length === 0 ? (
-        <Text style={styles.emptyText}>
-          You have not cooked any saved dishes yet.
-        </Text>
-      ) : (
-        <FlatList
-          data={savedRecipes}
-          keyExtractor={(item, index) => `${item.id}-${item.difficulty}-${index}`}
-          renderItem={renderRecipe}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F6E9DB",
+  },
   container: {
     flex: 1,
     backgroundColor: "#F6E9DB",
-    padding: 20,
-    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingTop: 12,
   },
-
   topBar: {
     marginBottom: 12,
+    width: "100%",
+    maxWidth: 720,
+    alignSelf: "center",
   },
-
   backButton: {
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
   },
-
   backText: {
     color: "#F48F92",
     fontSize: 16,
     fontWeight: "600",
     marginLeft: 2,
   },
-
   header: {
     fontSize: 28,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
-    color: "#c46a6a",
+    color: "black",
   },
-
   listContainer: {
     paddingBottom: 20,
+    width: "100%",
+    maxWidth: 720,
+    alignSelf: "center",
   },
-
   recipeCard: {
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 12,
     marginBottom: 12,
   },
-
   recipeMain: {
     flexDirection: "row",
     alignItems: "center",
   },
-
   recipeImage: {
     width: 80,
     height: 80,
     borderRadius: 12,
     marginRight: 12,
   },
-
   recipeTextContainer: {
     flex: 1,
   },
-
   recipeTitle: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#333",
   },
-
   recipeInfo: {
     marginTop: 6,
     fontSize: 14,
     color: "#888",
   },
-
   deleteButton: {
     marginTop: 12,
     alignSelf: "flex-end",
@@ -237,12 +236,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 10,
   },
-
   deleteButtonText: {
     color: "#b84d4d",
     fontWeight: "bold",
   },
-
   emptyText: {
     marginTop: 40,
     textAlign: "center",
