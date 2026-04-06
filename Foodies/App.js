@@ -39,7 +39,7 @@ function ProtectedLayout({ photos }) {
           if (route.name === "Home") {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "Profile") {
-            iconName = focused ? "person" : "person-outline";
+            iconName = focused ? "book" : "book-outline";
           } else if (route.name === "Grocery") {
             iconName = focused ? "cart" : "cart-outline";
           }
