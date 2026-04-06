@@ -27,7 +27,31 @@ function ProtectedLayout({ photos }) {
         options={{ headerShown: false }}
       />
 
+<<<<<<< Updated upstream
       <ProtectedTab.Screen name="Profile" options={{ headerShown: false }}>
+=======
+          if (route.name === "Home") {
+            iconName = focused ? "home" : "home-outline";
+          } else if (route.name === "Profile") {
+            iconName = focused ? "book" : "book-outline";
+          } else if (route.name === "Grocery") {
+            iconName = focused ? "cart" : "cart-outline";
+          }
+
+          return (
+            <Ionicons
+              name={iconName}
+              size={28}
+              color={focused ? "#F48F92" : "#9D9D9D"}
+            />
+          );
+        },
+      })}
+    >
+      <ProtectedTab.Screen name="Home" component={HomeScreen} />
+
+      <ProtectedTab.Screen name="Profile">
+>>>>>>> Stashed changes
         {(props) => <ProfileScreen {...props} photos={photos} />}
       </ProtectedTab.Screen>
 
