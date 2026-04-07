@@ -47,30 +47,40 @@ export default function ReminderSettingsScreen({ navigation }) {
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    async function loadSavedSettings() {
-      try {
-        const userId = auth.currentUser?.uid;
-        if (!userId) return;
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        await loadSavedSettings(user.uid);
+      } else {
+        setLoading(false);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
-        const userDoc = await getDoc(doc(db, "users", userId));
-        const reminders = userDoc.data()?.reminders;
+  async function loadSavedSettings(userId) {
+    try {
+      const userDoc = await getDoc(doc(db, "users", userId));
+      const reminders = userDoc.data()?.reminders;
 
-        if (reminders?.enabled) {
-          setEnabled(true);
-          setSelectedDays(reminders.days ?? []);
+      if (reminders?.enabled) {
+        setEnabled(true);
+        setSelectedDays(reminders.days || []);
+        if (
+          typeof reminders.hour === "number" &&
+          typeof reminders.minute === "number"
+        ) {
           const savedTime = new Date();
           savedTime.setHours(reminders.hour, reminders.minute, 0, 0);
           setTime(savedTime);
         }
-      } catch (e) {
-        console.error("Failed to load reminder settings:", e);
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      console.error("Failed to load reminders:", err);
+      Alert.alert("Error", "Failed to load your reminder settings.");
+    } finally {
+      setLoading(false);
     }
-
-    loadSavedSettings();
-  }, []);
+  }
 
   function toggleDay(value) {
     setSelectedDays((prev) =>
@@ -83,8 +93,13 @@ export default function ReminderSettingsScreen({ navigation }) {
   }
 
   async function handleSave() {
-    const userId = auth.currentUser?.uid;
-    if (!userId) return;
+    const user = auth.currentUser;
+    if (!user) {
+      Alert.alert("Error", "You must be logged in to save reminders.");
+      return;
+    }
+
+    const userId = user.uid;
 
     if (!enabled) {
       await cancelReminders();
@@ -104,28 +119,32 @@ export default function ReminderSettingsScreen({ navigation }) {
 
     const hour = time.getHours();
     const minute = time.getMinutes();
+    try {
+      await scheduleReminders(selectedDays, hour, minute);
 
-    await scheduleReminders(selectedDays, hour, minute);
+      await setDoc(
+        doc(db, "users", userId),
+        { reminders: { enabled: true, days: selectedDays, hour, minute } },
+        { merge: true }
+      );
 
-    await setDoc(
-      doc(db, "users", userId),
-      { reminders: { enabled: true, days: selectedDays, hour, minute } },
-      { merge: true }
-    );
-
-    Alert.alert(
-      "Reminders saved!",
-      __DEV__
-        ? "Test notification arrives in 5 seconds — background the app now."
-        : `You'll be reminded every ${DAYS.filter((d) =>
-            selectedDays.includes(d.value)
-          )
-            .map((d) => d.label)
-            .join(", ")} at ${time.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}.`
-    );
+      Alert.alert(
+        "Reminders saved!",
+        __DEV__
+          ? "Test notification arrives in 5 seconds — background the app now."
+          : `You'll be reminded every ${DAYS.filter((d) =>
+              selectedDays.includes(d.value)
+            )
+              .map((d) => d.label)
+              .join(", ")} at ${time.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}.`
+      );
+    } catch (err) {
+      console.error("Failed to save reminders:", err);
+      Alert.alert("Error", "Failed to save reminders.");
+    }
   }
 
   async function handleToggle(value) {
@@ -134,12 +153,17 @@ export default function ReminderSettingsScreen({ navigation }) {
     if (!userId) return;
 
     if (!value) {
-      await cancelReminders();
-      await setDoc(
-        doc(db, "users", userId),
-        { reminders: { enabled: false } },
-        { merge: true }
-      );
+      try {
+        await cancelReminders();
+        await setDoc(
+          doc(db, "users", userId),
+          { reminders: { enabled: false } },
+          { merge: true }
+        );
+      } catch (err) {
+        console.error("Failed to disable reminders:", err);
+        Alert.alert("Error", "Failed to turn off reminders.");
+      }
     }
   }
 
@@ -211,7 +235,9 @@ export default function ReminderSettingsScreen({ navigation }) {
                     value={time}
                     mode="time"
                     is24Hour={false}
+                    display={Platform.OS === "ios" ? "spinner" : "spinner"}
                     onChange={handleTimeChange}
+                    textColor="#2b2b2b"
                   />
                 )}
               </View>

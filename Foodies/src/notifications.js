@@ -44,7 +44,11 @@ export async function scheduleReminders(days, hour, minute) {
         sound: true,
         data: { type: "reminder" },
       },
-      trigger: { seconds: 5 },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: 5,
+        channelId: Platform.OS === "android" ? "reminders" : undefined,
+      },
     });
     return;
   }
@@ -59,11 +63,12 @@ export async function scheduleReminders(days, hour, minute) {
         data: { type: "reminder" },
       },
       trigger: {
-        channelId: "reminders",
-        weekday, // 1 = Sunday … 7 = Saturday
+        type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+        weekday,
         hour,
         minute,
         repeats: true,
+        ...(Platform.OS === "android" && { channelId: "reminders" }),
       },
     });
   }
