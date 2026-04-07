@@ -15,12 +15,14 @@
     "ios": {
       "bundleIdentifier": "com.foodies.foodfromhome",
       "googleServicesFile": "./GoogleService-Info.plist",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.foodies.foodfromhome",
       "googleServicesFile": "./google-services.json",
-
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -38,7 +40,13 @@
           "color": "#ffffff",
           "sounds": []
         }
-      ]
-    ]
+      ],
+      "@react-native-community/datetimepicker"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "42ee6efe-2ffc-496a-a42f-8bfb5bd06b4e"
+      }
+    }
   }
 }

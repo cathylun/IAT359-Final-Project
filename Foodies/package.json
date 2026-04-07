@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-community/datetimepicker": "8.4.4",
     "@react-native-firebase/app": "^24.0.0",
     "@react-native-firebase/messaging": "^24.0.0",
     "@react-native-picker/picker": "^2.11.4",
@@ -19,6 +20,7 @@
     "expo": "~54.0.33",
     "expo-camera": "~17.0.10",
     "expo-constants": "~18.0.13",
+    "expo-dev-client": "~6.0.20",
     "expo-device": "~8.0.10",
     "expo-notifications": "~0.32.16",
     "expo-status-bar": "~3.0.9",

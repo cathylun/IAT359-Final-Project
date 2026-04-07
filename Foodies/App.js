@@ -2,7 +2,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { StyleSheet } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { firebase_auth } from "./src/firebaseConfig";
 import SignInScreen from "./src/screens/SignInScreen";
@@ -10,10 +10,18 @@ import HomeScreen from "./src/screens/HomeScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import GroceryListScreen from "./src/screens/GroceryListScreen";
 
+import * as Notifications from "expo-notifications";
+import {
+  requestNotificationPermission,
+  setupAndroidChannel,
+  restoreRemindersFromFirestore,
+} from "./src/notifications";
+
 import DishIntroScreen from "./src/screens/DishIntroScreen";
 import IngredientScreen from "./src/screens/IngredientScreen";
 import CookingScreen from "./src/screens/CookingScreen";
 import CameraScreen from "./src/screens/CameraScreen";
+import ReminderSettingScreen from "./src/screens/ReminderSettingScreen";
 
 const ProtectedTab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -44,16 +52,40 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const notificationResponseListener = useRef();
+
   const [photos, setPhotos] = useState([]);
   const addPhoto = (photo) => {
     setPhotos((prev) => [...prev, photo]);
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(firebase_auth, (user) => {
+    async function initNotifications() {
+      const granted = await requestNotificationPermission();
+      if (!granted) return;
+      await setupAndroidChannel();
+    }
+
+    initNotifications();
+    notificationResponseListener.current =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        const data = response.notification.request.content.data;
+        console.log("Notification tapped:", data);
+      });
+
+    return () => {
+      notificationResponseListener.current?.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(firebase_auth, async (user) => {
       console.log("user", user);
       setUser(user);
       setLoading(false);
+      if (user) {
+        await restoreRemindersFromFirestore();
+      }
     });
     return unsubscribe;
   }, []);
@@ -74,6 +106,10 @@ export default function App() {
             <Stack.Screen name="Camera">
               {(props) => <CameraScreen {...props} addPhoto={addPhoto} />}
             </Stack.Screen>
+            <Stack.Screen
+              name="ReminderSetting"
+              component={ReminderSettingScreen}
+            />
           </>
         ) : (
           <Stack.Screen
