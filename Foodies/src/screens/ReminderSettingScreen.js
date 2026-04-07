@@ -120,6 +120,7 @@ export default function ReminderSettingsScreen() {
       { merge: true }
     );
 
+    
     Alert.alert(
       "Reminders saved!",
       // development testing notification
