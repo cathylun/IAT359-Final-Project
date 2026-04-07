@@ -15,6 +15,7 @@ import CreateAccountScreen from "./src/screens/CreateAccountScreen";
 import HomeScreen from "./src/screens/HomeScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import GroceryListScreen from "./src/screens/GroceryListScreen";
+import DiaryEntryScreen from "./src/screens/DiaryEntryScreen";
 
 import * as Notifications from "expo-notifications";
 import {
@@ -139,6 +140,9 @@ function RootNavigator() {
             <Stack.Screen name="CookedDishes" component={CookedDishesScreen} />
             <Stack.Screen name="Camera">
               {(props) => <CameraScreen {...props} addPhoto={addPhoto} />}
+            </Stack.Screen>
+            <Stack.Screen name="DiaryEntry">
+              {(props) => <DiaryEntryScreen {...props} />}
             </Stack.Screen>
             <Stack.Screen
               name="ReminderSetting"
