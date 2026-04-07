@@ -11,6 +11,10 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { doc, setDoc } from "firebase/firestore";
 import { db, firebase_auth as auth } from "../firebaseConfig";
 
@@ -70,56 +74,65 @@ export default function DiaryEntryScreen({ route, navigation }) {
     ]);
   }
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    <SafeAreaView
+      style={[
+        styles.container,
+        { paddingTop: insets.top, paddingBottom: insets.bottom },
+      ]}
     >
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleDiscard}>
-            <Text style={styles.discardText}>Discard</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Today's Dish</Text>
-          <TouchableOpacity onPress={handleSave} disabled={saving}>
-            <Text style={[styles.saveText, saving && { opacity: 0.4 }]}>
-              {saving ? "Saving..." : "Save"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.date}>{displayDate}</Text>
-
-        <Image source={{ uri: photoUri }} style={styles.photo} />
-
-        <Text style={styles.label}>How was it?</Text>
-        <View style={styles.starsRow}>
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-            <TouchableOpacity key={n} onPress={() => setRating(n)}>
-              <Text style={[styles.star, n <= rating && styles.starFilled]}>
-                ★
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.header}>
+            <TouchableOpacity onPress={handleDiscard}>
+              <Text style={styles.discardText}>Discard</Text>
+            </TouchableOpacity>
+            <Text style={styles.title}>Today's Dish</Text>
+            <TouchableOpacity onPress={handleSave} disabled={saving}>
+              <Text style={[styles.saveText, saving && { opacity: 0.4 }]}>
+                {saving ? "Saving..." : "Save"}
               </Text>
             </TouchableOpacity>
-          ))}
-        </View>
-        {rating > 0 && <Text style={styles.ratingLabel}>{rating} / 10</Text>}
+          </View>
 
-        <Text style={styles.label}>Write about it</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="What did you make today? How did it turn out..."
-          placeholderTextColor="#bbb"
-          multiline
-          value={text}
-          onChangeText={setText}
-          textAlignVertical="top"
-        />
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <Text style={styles.date}>{displayDate}</Text>
+
+          <Image source={{ uri: photoUri }} style={styles.photo} />
+
+          <Text style={styles.label}>How was it?</Text>
+          <View style={styles.starsRow}>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+              <TouchableOpacity key={n} onPress={() => setRating(n)}>
+                <Text style={[styles.star, n <= rating && styles.starFilled]}>
+                  ★
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {rating > 0 && <Text style={styles.ratingLabel}>{rating} / 10</Text>}
+
+          <Text style={styles.label}>Write about it</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="What did you make? How did it turn out..."
+            placeholderTextColor="#bbb"
+            multiline
+            value={text}
+            onChangeText={setText}
+            textAlignVertical="top"
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -129,8 +142,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF7F1",
   },
   content: {
-    padding: 20,
-    paddingBottom: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   header: {
     flexDirection: "row",
