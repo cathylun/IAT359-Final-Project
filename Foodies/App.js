@@ -12,10 +12,9 @@ import GroceryListScreen from "./src/screens/GroceryListScreen";
 
 import * as Notifications from "expo-notifications";
 import {
-  requestNotificationPermission,
-  setupAndroidChannel,
-  restoreRemindersFromFirestore,
-} from "./src/notifications";
+  registerForPushNotifications,
+  savePushToken,
+} from "./src/pushnotifications";
 
 import DishIntroScreen from "./src/screens/DishIntroScreen";
 import IngredientScreen from "./src/screens/IngredientScreen";
@@ -84,7 +83,10 @@ export default function App() {
       setUser(user);
       setLoading(false);
       if (user) {
-        await restoreRemindersFromFirestore();
+        const token = await registerForPushNotifications();
+        if (token) {
+          await savePushToken(token);
+        }
       }
     });
     return unsubscribe;

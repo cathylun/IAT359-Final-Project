@@ -10,12 +10,8 @@ import {
   Button,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { doc, getDoc } from "firebase/firestore";
-import { db, auth } from "../src/firebase";
-import {
-  scheduleWeeklyReminders,
-  cancelAllReminders,
-} from "../src/notifications";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db, auth } from "../src/firebaseConfig";
 
 // 1 = Sunday ... 7 = Saturday (matches expo-notifications weekday trigger)
 const DAYS = [
@@ -81,8 +77,18 @@ export default function ReminderSettingsScreen() {
   }
 
   async function handleSave() {
+    const userId = auth.currentUser?.uid;
+    if (!userId) return;
+
     if (!enabled) {
-      await cancelAllReminders();
+      await setDoc(
+        doc(db, "users", userId),
+        {
+          reminders: { enabled: false },
+        },
+        { merge: true }
+      );
+      alert("Reminders turned off");
       return;
     }
 
@@ -91,20 +97,36 @@ export default function ReminderSettingsScreen() {
       return;
     }
 
-    await scheduleWeeklyReminders({
-      title: "🍽️ Foodies Reminder",
-      body: "Check out what's cooking today!",
-      hour: time.getHours(),
-      minute: time.getMinutes(),
-      days: selectedDays,
-    });
+    await setDoc(
+      doc(db, "users", userId),
+      {
+        reminders: {
+          enabled: true,
+          days: selectedDays,
+          hour: time.getHours(),
+          minute: time.getMinutes(),
+        },
+      },
+      { merge: true }
+    );
 
     alert("Reminders saved!");
   }
 
   async function handleToggle(value) {
     setEnabled(value);
-    if (!value) await cancelAllReminders();
+    const userId = auth.currentUser?.uid;
+    if (!userId) return;
+
+    if (!value) {
+      await setDoc(
+        doc(db, "users", userId),
+        {
+          reminders: { enabled: false },
+        },
+        { merge: true }
+      );
+    }
   }
 
   function handleTimeChange(event, selectedTime) {
