@@ -1,62 +1,150 @@
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function DishIntroScreen({ route, navigation }) {
-
   const { recipe } = route.params;
 
+  const cleanSummary = recipe.summary
+    ? recipe.summary.replace(/<[^>]+>/g, "")
+    : "No description available";
+
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.topBar}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Ionicons name="chevron-back" size={22} color="#F48F92" />
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+      </View>
 
-      <Text style={styles.title}>{recipe.title}</Text>
+      <View style={styles.imageCard}>
+        <Image source={{ uri: recipe.image }} style={styles.image} />
+      </View>
 
-      <Image
-        source={{ uri: recipe.image }}
-        style={styles.image}
-      />
+      <View style={styles.contentCard}>
+        <Text style={styles.tag}>
+          {recipe.cuisine || "Cuisine"} • {recipe.difficulty || "Difficulty"}
+        </Text>
 
-      <Text>{recipe.summary.replace(/<[^>]+>/g, "")}</Text>
-      {/* removes tags */}
-      
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate("Ingredients", { recipe })}
-      >
-        <Text style={styles.buttonText}>Check Ingredients</Text>
-      </TouchableOpacity>
+        <Text style={styles.title}>{recipe.title}</Text>
 
-    </View>
+        <Text style={styles.summary}>{cleanSummary}</Text>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate("Ingredients", { recipe })}
+        >
+          <Text style={styles.buttonText}>Check Ingredients</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-
-  container:{
-    flex:1,
-    padding:20
+  screen: {
+    flex: 1,
+    backgroundColor: "#F6E9DB",
   },
 
-  title:{
-    fontSize:22,
-    fontWeight:"bold",
-    marginBottom:10
+  scrollContent: {
+    padding: 20,
+    paddingTop: 60,
+    paddingBottom: 30,
   },
 
-  image:{
-    width:"100%",
-    height:200,
-    marginBottom:20
+  topBar: {
+    marginBottom: 12,
   },
 
-  button:{
-    marginTop:20,
-    backgroundColor:"#007AFF",
-    padding:15,
-    borderRadius:10
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
   },
 
-  buttonText:{
-    color:"white",
-    textAlign:"center"
-  }
+  backText: {
+    color: "#F48F92",
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 2,
+  },
 
+  imageCard: {
+    backgroundColor: "#FFF7F1",
+    borderRadius: 24,
+    padding: 12,
+    marginBottom: 18,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+
+  image: {
+    width: "100%",
+    height: 240,
+    borderRadius: 18,
+  },
+
+  contentCard: {
+    backgroundColor: "#FFF7F1",
+    borderRadius: 24,
+    padding: 22,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+
+  tag: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#C96C70",
+    marginBottom: 10,
+  },
+
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#2B2B2B",
+    marginBottom: 14,
+    lineHeight: 34,
+  },
+
+  summary: {
+    fontSize: 16,
+    color: "#5A4E4E",
+    lineHeight: 24,
+  },
+
+  button: {
+    marginTop: 24,
+    backgroundColor: "#F48F92",
+    paddingVertical: 17,
+    borderRadius: 18,
+    alignItems: "center",
+  },
+
+  buttonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
 });
