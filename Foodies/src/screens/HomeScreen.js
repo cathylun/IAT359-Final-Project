@@ -9,7 +9,10 @@ import {
   Image,
   ScrollView,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { db, firebase_auth } from "../firebaseConfig.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { signOut } from "firebase/auth";
@@ -104,9 +107,9 @@ export default function HomeScreen({ navigation }) {
 
   const saveRecipeLocally = async (newRecipe) => {
     try {
-      const storageKey = getUserRecipesKey();
-      if (!storageKey) return;
-
+      const user = firebase_auth.currentUser;
+      if (!user) return;
+      const storageKey = `savedRecipes_${user.uid}`;
       const existingRecipes = await AsyncStorage.getItem(storageKey);
       let recipesArray = existingRecipes ? JSON.parse(existingRecipes) : [];
 
@@ -124,6 +127,11 @@ export default function HomeScreen({ navigation }) {
 
         recipesArray.push(recipeWithTime);
         await AsyncStorage.setItem(storageKey, JSON.stringify(recipesArray));
+
+        await setDoc(
+          doc(db, `users/${user.uid}/savedRecipes`, newRecipe.id.toString()),
+          { ...recipeWithTime, createdAt: serverTimestamp() }
+        );
       }
     } catch (error) {
       console.log("Error saving recipe locally:", error);
@@ -180,7 +188,6 @@ export default function HomeScreen({ navigation }) {
       const searchResponse = await fetch(
         `https://www.themealdb.com/api/json/v1/1/filter.php?a=${cuisine}`
       );
-
       const searchData = await searchResponse.json();
 
       if (!searchData.meals || searchData.meals.length === 0) {
@@ -190,65 +197,63 @@ export default function HomeScreen({ navigation }) {
 
       const recipe =
         searchData.meals[Math.floor(Math.random() * searchData.meals.length)];
-
       const recipeId = recipe.idMeal;
 
       const infoResponse = await fetch(
         `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${recipeId}`
       );
-
       const infoData = await infoResponse.json();
       const recipeData = infoData.meals[0];
 
+      // Build ingredients
       const ingredients = [];
-
       for (let i = 1; i <= 20; i++) {
         const ingredient = recipeData[`strIngredient${i}`];
         const measure = recipeData[`strMeasure${i}`];
-
         if (ingredient && ingredient.trim() !== "") {
-          ingredients.push({
-            id: i,
-            name: ingredient,
-            measure: measure || "",
-          });
+          ingredients.push({ id: i, name: ingredient, measure: measure || "" });
         }
       }
 
-      const instructionsText = recipeData.strInstructions || "";
-
-      const stepsArray = instructionsText
+      // Build steps
+      const stepsArray = (recipeData.strInstructions || "")
         .split("\n")
         .filter((s) => s.trim() !== "")
-        .map((s, index) => ({
-          number: index + 1,
-          step: s.trim(),
-        }));
+        .map((s, index) => ({ number: index + 1, step: s.trim() }));
 
       const formattedRecipe = {
         id: recipeId,
         title: recipeData.strMeal,
         image: recipeData.strMealThumb,
-        cuisine: cuisine,
-        difficulty: difficulty,
-        summary: `${recipeData.strMeal} is a ${recipeData.strArea} dish. Try making this ${difficulty.toLowerCase()} recipe at home.`,
-        instructions: instructionsText,
-        ingredients: ingredients,
+        cuisine,
+        difficulty,
+        summary: `${recipeData.strMeal} is a ${
+          recipeData.strArea
+        } dish. Try making this ${difficulty.toLowerCase()} recipe at home.`,
+        instructions: recipeData.strInstructions,
+        ingredients,
         analyzedInstructions: [{ steps: stepsArray }],
       };
 
-      await setDoc(doc(db, "recipes", recipeId.toString()), {
-        ...formattedRecipe,
-        createdAt: serverTimestamp(),
-      });
+      // Save general recipe (ignore errors if not allowed)
+      try {
+        await setDoc(doc(db, "recipes", formattedRecipe.id.toString()), {
+          ...formattedRecipe,
+          createdAt: serverTimestamp(),
+        });
+      } catch (error) {
+        console.log("Firestore general recipes write failed (ignored):", error);
+      }
 
+      // Save user-specific recipe + AsyncStorage
       await saveRecipeLocally(formattedRecipe);
+
+      // Open recipe screen
       openRecipe(formattedRecipe);
     } catch (error) {
-      console.log("Online fetch failed, trying offline recipe:", error);
+      console.log("API fetch failed, trying offline recipe:", error);
 
       const offlineRecipe = await getOfflineRecipe();
-
       if (offlineRecipe) {
         Alert.alert(
           "Offline Mode",
@@ -286,7 +291,6 @@ export default function HomeScreen({ navigation }) {
         contentInsetAdjustmentBehavior="never"
       >
         <View style={styles.content}>
-
           <View style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>Select Cuisine</Text>
 
