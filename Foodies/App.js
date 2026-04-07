@@ -1,11 +1,13 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { StyleSheet } from "react-native";
 import { useEffect, useState, useRef } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 import { firebase_auth } from "./src/firebaseConfig";
 import SignInScreen from "./src/screens/SignInScreen";
@@ -16,9 +18,9 @@ import GroceryListScreen from "./src/screens/GroceryListScreen";
 
 import * as Notifications from "expo-notifications";
 import {
-  registerForPushNotifications,
-  savePushToken,
-} from "./src/pushnotifications";
+  requestNotificationPermission,
+  setupAndroidChannel,
+} from "./src/notifications";
 
 import DishIntroScreen from "./src/screens/DishIntroScreen";
 import IngredientScreen from "./src/screens/IngredientScreen";
@@ -107,16 +109,10 @@ function RootNavigator() {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(firebase_auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(firebase_auth, (user) => {
       console.log("user", user);
       setUser(user);
       setLoading(false);
-      if (user) {
-        const token = await registerForPushNotifications();
-        if (token) {
-          await savePushToken(token);
-        }
-      }
     });
 
     return unsubscribe;

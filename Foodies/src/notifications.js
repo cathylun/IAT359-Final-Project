@@ -2,6 +2,8 @@ import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import { Platform } from "react-native";
 
+const DEV_MODE = __DEV__;
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -26,4 +28,47 @@ export async function setupAndroidChannel() {
     vibrationPattern: [0, 250, 250, 250],
     sound: "default",
   });
+}
+
+export async function scheduleReminders(days, hour, minute) {
+  await cancelReminders();
+
+  if (DEV_MODE) {
+    // Fires in 5 seconds — background the app after saving to see it
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Time to cook! 🍳 (test)",
+        body: `Would fire on days [${days.join(", ")}] at ${hour}:${String(
+          minute
+        ).padStart(2, "0")}`,
+        sound: true,
+        data: { type: "reminder" },
+      },
+      trigger: { seconds: 5 },
+    });
+    return;
+  }
+
+  // Production: one repeating trigger per selected weekday
+  for (const weekday of days) {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Time to cook! 🍳",
+        body: "Your daily cooking reminder is here. What are you making today?",
+        sound: true,
+        data: { type: "reminder" },
+      },
+      trigger: {
+        channelId: "reminders",
+        weekday, // 1 = Sunday … 7 = Saturday
+        hour,
+        minute,
+        repeats: true,
+      },
+    });
+  }
+}
+
+export async function cancelReminders() {
+  await Notifications.cancelAllScheduledNotificationsAsync();
 }
