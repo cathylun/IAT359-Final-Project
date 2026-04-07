@@ -43,7 +43,6 @@ const getGifForStep = (stepText) => {
       };
     }
   }
-// converts step text to lowercase and finds a matching GIF using keyword search
 
   return {
     source: require("../gif/maindude.png"),
@@ -61,6 +60,7 @@ const getGifForStep = (stepText) => {
       {steps.map((step) => {
         const cleanText = step.step.replace(/Step\s*\d+:\s*/i, "");
       const imageData = getGifForStep(cleanText);
+
 
         return (
           <View key={step.number} style={{ marginTop: 15 }}>

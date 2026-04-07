@@ -8,10 +8,12 @@ import {
   ScrollView,
   Platform,
   Button,
+  Alert,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db, auth } from "../src/firebaseConfig";
+import { db, firebase_auth as auth } from "../firebaseConfig";
+import { scheduleReminders, cancelReminders } from "../notifications";
 
 // 1 = Sunday ... 7 = Saturday (matches expo-notifications weekday trigger)
 const DAYS = [
@@ -40,24 +42,27 @@ export default function ReminderSettingsScreen() {
   const [showPicker, setShowPicker] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Load saved settings from Firestore on mount
   useEffect(() => {
     async function loadSavedSettings() {
-      const userId = auth.currentUser?.uid;
-      if (!userId) return;
+      try {
+        const userId = auth.currentUser?.uid;
+        if (!userId) return;
 
-      const userDoc = await getDoc(doc(db, "users", userId));
-      const reminders = userDoc.data()?.reminders;
+        const userDoc = await getDoc(doc(db, "users", userId));
+        const reminders = userDoc.data()?.reminders;
 
-      if (reminders?.enabled) {
-        setEnabled(true);
-        setSelectedDays(reminders.days ?? []);
-        const savedTime = new Date();
-        savedTime.setHours(reminders.hour, reminders.minute, 0, 0);
-        setTime(savedTime);
+        if (reminders?.enabled) {
+          setEnabled(true);
+          setSelectedDays(reminders.days ?? []);
+          const savedTime = new Date();
+          savedTime.setHours(reminders.hour, reminders.minute, 0, 0);
+          setTime(savedTime);
+        }
+      } catch (e) {
+        console.error("Failed to load reminder settings:", e);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     }
 
     loadSavedSettings();
@@ -81,36 +86,54 @@ export default function ReminderSettingsScreen() {
     if (!userId) return;
 
     if (!enabled) {
+      await cancelReminders();
       await setDoc(
         doc(db, "users", userId),
-        {
-          reminders: { enabled: false },
-        },
+        { reminders: { enabled: false } },
         { merge: true }
       );
-      alert("Reminders turned off");
+      Alert.alert("Reminders turned off");
       return;
     }
 
     if (selectedDays.length === 0) {
-      alert("Please select at least one day.");
+      Alert.alert("Please select at least one day.");
       return;
     }
 
+    const hour = time.getHours();
+    const minute = time.getMinutes();
+
+    await scheduleReminders(selectedDays, hour, minute);
+
+    // Persist to Firestore so settings survive app restarts
     await setDoc(
       doc(db, "users", userId),
       {
         reminders: {
           enabled: true,
           days: selectedDays,
-          hour: time.getHours(),
-          minute: time.getMinutes(),
+          hour,
+          minute,
         },
       },
       { merge: true }
     );
 
-    alert("Reminders saved!");
+    Alert.alert(
+      "Reminders saved!",
+      // development testing notification
+      __DEV__
+        ? "Test notification arrives in 5 seconds — background the app now."
+        : `You'll be reminded every ${DAYS.filter((d) =>
+            selectedDays.includes(d.value)
+          )
+            .map((d) => d.label)
+            .join(", ")} at ${time.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}.`
+    );
   }
 
   async function handleToggle(value) {
@@ -119,6 +142,7 @@ export default function ReminderSettingsScreen() {
     if (!userId) return;
 
     if (!value) {
+      await cancelReminders();
       await setDoc(
         doc(db, "users", userId),
         {

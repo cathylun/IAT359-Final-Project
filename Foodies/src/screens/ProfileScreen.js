@@ -1,9 +1,23 @@
-import { View, Text, Image, ScrollView, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Button,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 export default function ProfileScreen({ photos }) {
+  const navigation = useNavigation();
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>My Cooking Diary</Text>
+      <Button
+        title="Reminder Settings"
+        onPress={() => navigation.navigate("ReminderSetting")}
+      />
 
       {photos.length === 0 ? (
         <Text>No photos yet</Text>
