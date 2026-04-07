@@ -4,8 +4,12 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { StyleSheet } from "react-native";
 import { useEffect, useState, useRef } from "react";
 import { onAuthStateChanged } from "firebase/auth";
+import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { firebase_auth } from "./src/firebaseConfig";
 import SignInScreen from "./src/screens/SignInScreen";
+import CreateAccountScreen from "./src/screens/CreateAccountScreen";
 import HomeScreen from "./src/screens/HomeScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import GroceryListScreen from "./src/screens/GroceryListScreen";
@@ -21,39 +25,64 @@ import IngredientScreen from "./src/screens/IngredientScreen";
 import CookingScreen from "./src/screens/CookingScreen";
 import CameraScreen from "./src/screens/CameraScreen";
 import ReminderSettingScreen from "./src/screens/ReminderSettingScreen";
+import CookedDishesScreen from "./src/screens/CookedDishesScreen";
 
 const ProtectedTab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function ProtectedLayout({ photos }) {
-  return (
-    <ProtectedTab.Navigator>
-      <ProtectedTab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ headerShown: false }}
-      />
+  const insets = useSafeAreaInsets();
 
-      <ProtectedTab.Screen name="Profile" options={{ headerShown: false }}>
+  return (
+    <ProtectedTab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          backgroundColor: "#FFF7F1",
+          borderTopWidth: 0,
+          height: 50 + insets.bottom,
+          paddingTop: 8,
+          paddingBottom: Math.max(insets.bottom, 2),
+        },
+        tabBarIcon: ({ focused }) => {
+          let iconName;
+
+          if (route.name === "Home") {
+            iconName = focused ? "home" : "home-outline";
+          } else if (route.name === "Profile") {
+            iconName = focused ? "person" : "person-outline";
+          } else if (route.name === "Grocery") {
+            iconName = focused ? "cart" : "cart-outline";
+          }
+
+          return (
+            <Ionicons
+              name={iconName}
+              size={26}
+              color={focused ? "#F48F92" : "#9D9D9D"}
+            />
+          );
+        },
+      })}
+    >
+      <ProtectedTab.Screen name="Home" component={HomeScreen} />
+      <ProtectedTab.Screen name="Profile">
         {(props) => <ProfileScreen {...props} photos={photos} />}
       </ProtectedTab.Screen>
-
-      <ProtectedTab.Screen
-        name="Grocery"
-        component={GroceryListScreen}
-        options={{ headerShown: false }}
-      />
+      <ProtectedTab.Screen name="Grocery" component={GroceryListScreen} />
     </ProtectedTab.Navigator>
   );
 }
 
-export default function App() {
+function RootNavigator() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const notificationResponseListener = useRef();
 
   const [photos, setPhotos] = useState([]);
+
   const addPhoto = (photo) => {
     setPhotos((prev) => [...prev, photo]);
   };
@@ -89,6 +118,7 @@ export default function App() {
         }
       }
     });
+
     return unsubscribe;
   }, []);
 
@@ -96,15 +126,21 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="SignIn">
+      <Stack.Navigator
+        screenOptions={{
+          animation: "none",
+          headerShown: false,
+        }}
+      >
         {user ? (
           <>
-            <Stack.Screen name="ProtectedArea" options={{ headerShown: false }}>
+            <Stack.Screen name="ProtectedArea">
               {(props) => <ProtectedLayout {...props} photos={photos} />}
             </Stack.Screen>
             <Stack.Screen name="DishIntro" component={DishIntroScreen} />
             <Stack.Screen name="Ingredients" component={IngredientScreen} />
             <Stack.Screen name="Cooking" component={CookingScreen} />
+            <Stack.Screen name="CookedDishes" component={CookedDishesScreen} />
             <Stack.Screen name="Camera">
               {(props) => <CameraScreen {...props} addPhoto={addPhoto} />}
             </Stack.Screen>
@@ -114,22 +150,23 @@ export default function App() {
             />
           </>
         ) : (
-          <Stack.Screen
-            name="SignIn"
-            component={SignInScreen}
-            options={{ headerShown: false }}
-          />
+          <>
+            <Stack.Screen name="SignIn" component={SignInScreen} />
+            <Stack.Screen
+              name="CreateAccount"
+              component={CreateAccountScreen}
+            />
+          </>
         )}
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <RootNavigator />
+    </SafeAreaProvider>
+  );
+}
