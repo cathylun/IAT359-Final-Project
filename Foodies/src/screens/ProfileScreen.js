@@ -38,6 +38,7 @@ const styles = StyleSheet.create({
     padding: 24,
     margin: 24,
     backgroundColor: "#F6E9DB",
+
   },
 
   title: {
