@@ -36,6 +36,9 @@ export default function DishIntroScreen({ route, navigation }) {
           {recipe.cuisine || "Cuisine"} • {recipe.difficulty || "Difficulty"}
         </Text>
 
+        <Text style={styles.summaryText}>
+          {recipe.summary || "No summary available."}
+        </Text>
 
         <TouchableOpacity
           style={styles.button}
