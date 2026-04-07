@@ -11,10 +11,6 @@ import { Ionicons } from "@expo/vector-icons";
 export default function DishIntroScreen({ route, navigation }) {
   const { recipe } = route.params;
 
-  const cleanSummary = recipe.summary
-    ? recipe.summary.replace(/<[^>]+>/g, "")
-    : "No description available";
-
   return (
     <ScrollView
       style={styles.screen}
@@ -40,9 +36,6 @@ export default function DishIntroScreen({ route, navigation }) {
           {recipe.cuisine || "Cuisine"} • {recipe.difficulty || "Difficulty"}
         </Text>
 
-        <Text style={styles.title}>{recipe.title}</Text>
-
-        <Text style={styles.summary}>{cleanSummary}</Text>
 
         <TouchableOpacity
           style={styles.button}
