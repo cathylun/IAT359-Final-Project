@@ -111,7 +111,6 @@ function RootNavigator() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(firebase_auth, (user) => {
-      console.log("user", user);
       setUser(user);
       setLoading(false);
     });
