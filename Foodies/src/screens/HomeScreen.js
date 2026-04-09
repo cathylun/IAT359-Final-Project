@@ -19,7 +19,11 @@ import { signOut } from "firebase/auth";
 
 export default function HomeScreen({ navigation }) {
   const [cuisine, setCuisine] = useState("Italian");
+  // State: selected cuisine
+
   const [difficulty, setDifficulty] = useState("Easy");
+  // State: selected difficulty
+
   const [isLoaded, setIsLoaded] = useState(false);
 
   const insets = useSafeAreaInsets();
@@ -171,7 +175,8 @@ export default function HomeScreen({ navigation }) {
 
   const openRecipe = (recipe) => {
     navigation.navigate("DishIntro", { recipe });
-  };
+  };  // Navigate to recipe detail screen
+
 
   const cuisines = [
     { name: "Italian", image: require("../img/Italy.png") },
@@ -179,33 +184,36 @@ export default function HomeScreen({ navigation }) {
     { name: "Chinese", image: require("../img/China.png") },
     { name: "Mexican", image: require("../img/Mexico.png") },
     { name: "Greek", image: require("../img/Greek.png") },
-  ];
+  ];  // Cuisine options + icon of the flags
 
-  const difficultyOptions = ["Easy", "Medium", "Hard"];
 
-  const getRecipe = async () => {
+  const difficultyOptions = ["Easy", "Medium", "Hard"];   // Difficulty options
+
+  const getRecipe = async () => { 
+    // Fetch recipe from API
+
     try {
       const searchResponse = await fetch(
         `https://www.themealdb.com/api/json/v1/1/filter.php?a=${cuisine}`
-      );
+      ); //fetch recipes by cuisine
       const searchData = await searchResponse.json();
 
       if (!searchData.meals || searchData.meals.length === 0) {
         Alert.alert("No recipe found");
         return;
-      }
+      } // If no recipes returned, stop execution
+
 
       const recipe =
         searchData.meals[Math.floor(Math.random() * searchData.meals.length)];
-      const recipeId = recipe.idMeal;
+      const recipeId = recipe.idMeal; 
 
       const infoResponse = await fetch(
         `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${recipeId}`
-      );
+      ); // fetch full recipe details using recipe ID
       const infoData = await infoResponse.json();
       const recipeData = infoData.meals[0];
 
-      // Build ingredients
       const ingredients = [];
       for (let i = 1; i <= 20; i++) {
         const ingredient = recipeData[`strIngredient${i}`];
@@ -213,13 +221,16 @@ export default function HomeScreen({ navigation }) {
         if (ingredient && ingredient.trim() !== "") {
           ingredients.push({ id: i, name: ingredient, measure: measure || "" });
         }
-      }
+      } // Build ingredients array (API stores ingredients in separate fields)
+    // Only include valid ingredients (ignore empty strings)
 
-      // Build steps
+
+
       const stepsArray = (recipeData.strInstructions || "")
-        .split("\n")
-        .filter((s) => s.trim() !== "")
+        .split("\n") // split into lines
+        .filter((s) => s.trim() !== "") // remove empty lines
         .map((s, index) => ({ number: index + 1, step: s.trim() }));
+        // Convert instructions text by step-by-step array
 
       const formattedRecipe = {
         id: recipeId,
@@ -233,9 +244,8 @@ export default function HomeScreen({ navigation }) {
         instructions: recipeData.strInstructions,
         ingredients,
         analyzedInstructions: [{ steps: stepsArray }],
-      };
+      }; //Create structured recipe object for app use
 
-      // Save general recipe (ignore errors if not allowed)
       try {
         await setDoc(doc(db, "recipes", formattedRecipe.id.toString()), {
           ...formattedRecipe,
@@ -243,7 +253,8 @@ export default function HomeScreen({ navigation }) {
         });
       } catch (error) {
         console.log("Firestore general recipes write failed (ignored):", error);
-      }
+      } // Save general recipe (ignore errors if not allowed)
+
 
       // Save user-specific recipe + AsyncStorage
       await saveRecipeLocally(formattedRecipe);

@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
+// Main screen component for showing recipe introduction
 export default function DishIntroScreen({ route, navigation }) {
   const { recipe } = route.params;
 
@@ -19,7 +20,7 @@ export default function DishIntroScreen({ route, navigation }) {
     >
       <View style={styles.topBar}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.goBack()} // Navigate back to previous screen
           style={styles.backButton}
         >
           <Ionicons name="chevron-back" size={22} color="#F48F92" />
@@ -30,15 +31,19 @@ export default function DishIntroScreen({ route, navigation }) {
       <View style={styles.imageCard}>
         <Image source={{ uri: recipe.image }} style={styles.image} />
       </View>
+      {/*  Recipe image display from API */}
 
       <View style={styles.contentCard}>
         <Text style={styles.tag}>
           {recipe.cuisine || "Cuisine"} • {recipe.difficulty || "Difficulty"}
         </Text>
+      {/* show recipe cuisine section + difficulty level,
+      if not show Cuisine and Difficulty word*/}
 
         <Text style={styles.summaryText}>
           {recipe.summary || "No summary available."}
         </Text>
+        {/* Recipe description/summary, fallback if missing*/}
 
         <TouchableOpacity
           style={styles.button}
@@ -124,7 +129,7 @@ const styles = StyleSheet.create({
     lineHeight: 34,
   },
 
-  summary: {
+  summaryText: {
     fontSize: 16,
     color: "#5A4E4E",
     lineHeight: 24,

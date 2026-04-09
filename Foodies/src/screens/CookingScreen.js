@@ -4,9 +4,13 @@ import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
 export default function CookingScreen({ route, navigation }) {
   const { recipe } = route.params;
   const steps = recipe.analyzedInstructions[0]?.steps || [];
+  // Extract steps safely, if the recipe does not contain instructions, use an empty array instead
+
+
   const [stepIndex, setStepIndex] = useState(0);
   const currentStep = steps[stepIndex] || { step: "" };
   const cleanText = currentStep.step.replace(/Step\s*\d+:\s*/i, "");
+  // Clean text such remove "Step X:" if present
 
   // GIF mapping based on keywords
   const actionGifs = [
@@ -25,12 +29,16 @@ export default function CookingScreen({ route, navigation }) {
 
   const getGifForStep = (stepText) => {
     const lower = stepText.toLowerCase();
+
     for (let action of actionGifs) {
       if (lower.includes(action.keyword)) {
         return { source: action.gif, style: styles.gifImage };
       }
-    }
+    }    // Function to choose appropriate GIF based on step text and
+    // check if any keyword matches the step 
+
     return { source: require("../gif/maindude.png"), style: styles.mainImage };
+    // Default image of application logo if no keyword is matched
   };
 
   if (!currentStep) {
@@ -39,9 +47,10 @@ export default function CookingScreen({ route, navigation }) {
         <Text style={styles.title}>No steps available for this recipe.</Text>
       </View>
     );
-  }
+  }    // If no current step available, display a message to the user.
 
   const imageData = getGifForStep(cleanText);
+  // Call the function to get the correct image or GIF for the current step.
 
   const goPrevious = () => {
     if (stepIndex > 0) setStepIndex(stepIndex - 1);
@@ -51,9 +60,10 @@ export default function CookingScreen({ route, navigation }) {
     if (stepIndex < steps.length - 1) {
       setStepIndex(stepIndex + 1);
     } else {
-      navigation.navigate("Camera"); // end of steps, go to camera
+      navigation.navigate("Camera"); 
     }
-  };
+  };  // Move to the next cooking step, if the user is already on the last step, 
+  // navigate to the Camera screen instead.
 
   return (
     <View style={styles.container}>
