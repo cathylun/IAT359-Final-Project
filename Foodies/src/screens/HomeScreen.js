@@ -17,26 +17,27 @@ import { db, firebase_auth } from "../firebaseConfig.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { signOut } from "firebase/auth";
 
+// Home screen for selecting cuisine, difficulty, and loading recipes
 export default function HomeScreen({ navigation }) {
+  // Selected cuisine and difficulty state for recipe filtering
   const [cuisine, setCuisine] = useState("Italian");
-  // State: selected cuisine
-
   const [difficulty, setDifficulty] = useState("Easy");
-  // State: selected difficulty
-
   const [isLoaded, setIsLoaded] = useState(false);
 
   const insets = useSafeAreaInsets();
 
+  // Load saved cuisine and difficulty on first render
   useEffect(() => {
     loadSavedPreferences();
   }, []);
 
+  // Save preferences whenever selection changes after initial load
   useEffect(() => {
     if (!isLoaded) return;
     savePreferences();
   }, [cuisine, difficulty, isLoaded]);
 
+  // Build storage key for current user's saved recipes
   const getUserRecipesKey = () => {
     const user = firebase_auth.currentUser;
     if (!user) return null;
@@ -55,6 +56,7 @@ export default function HomeScreen({ navigation }) {
     return `selectedDifficulty_${user.uid}`;
   };
 
+  // Confirm and sign out the authenticated user
   const handleLogout = () => {
     Alert.alert("Log Out", "Are you sure you want to log out?", [
       { text: "Cancel", style: "cancel" },
@@ -73,6 +75,7 @@ export default function HomeScreen({ navigation }) {
     ]);
   };
 
+  // Load saved cuisine and difficulty from AsyncStorage for this user
   const loadSavedPreferences = async () => {
     try {
       const cuisineKey = getUserCuisineKey();
@@ -95,6 +98,7 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
+  // Persist selected cuisine and difficulty locally for the current user
   const savePreferences = async () => {
     try {
       const cuisineKey = getUserCuisineKey();
@@ -109,6 +113,7 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
+  // Save a cooked recipe locally and also sync to Firestore
   const saveRecipeLocally = async (newRecipe) => {
     try {
       const user = firebase_auth.currentUser;
@@ -142,6 +147,7 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
+  // Retrieve a previously saved recipe matching current filters for offline fallback
   const getOfflineRecipe = async () => {
     try {
       const storageKey = getUserRecipesKey();
@@ -173,11 +179,12 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
+  // Navigate to the recipe detail screen with the selected recipe data
   const openRecipe = (recipe) => {
     navigation.navigate("DishIntro", { recipe });
-  };  // Navigate to recipe detail screen
+  };
 
-
+  // List of supported cuisines and their icon images
   const cuisines = [
     { name: "Italian", image: require("../img/Italy.png") },
     { name: "Japanese", image: require("../img/Japan.png") },
@@ -187,8 +194,10 @@ export default function HomeScreen({ navigation }) {
   ];  // Cuisine options + icon of the flags
 
 
-  const difficultyOptions = ["Easy", "Medium", "Hard"];   // Difficulty options
+  // Difficulty filter options shown on the home screen
+  const difficultyOptions = ["Easy", "Medium", "Hard"];
 
+  // Fetch a recipe from the API or use offline data if the network request fails
   const getRecipe = async () => { 
     // Fetch recipe from API
 
@@ -275,6 +284,7 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
+  // Render the home screen UI with cuisine/difficulty selectors and action buttons
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -373,6 +383,7 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
+// Style definitions for home screen layout and buttons
 const styles = StyleSheet.create({
   container: {
     flex: 1,

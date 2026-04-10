@@ -1,4 +1,7 @@
+// React hooks
 import { useEffect, useCallback, useState } from "react";
+
+// React Native components
 import {
   View,
   Text,
@@ -8,56 +11,73 @@ import {
   Image,
   Alert,
 } from "react-native";
+
+// Local storage
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// Firebase auth
 import { firebase_auth } from "../firebaseConfig";
+
+// Navigation hooks
 import { useFocusEffect } from "@react-navigation/native";
+
+// Safe area handling
 import { SafeAreaView } from "react-native-safe-area-context";
+
+// Icons
 import { Ionicons } from "@expo/vector-icons";
 
+// Main screen component
 export default function CookedDishesScreen({ navigation }) {
-  const [savedRecipes, setSavedRecipes] = useState([]);
+  const [savedRecipes, setSavedRecipes] = useState([]); // store recipes
 
+  // load recipes on first mount
   useEffect(() => {
     loadSavedRecipes();
   }, []);
 
+  // reload recipes when screen is focused
   useFocusEffect(
     useCallback(() => {
       loadSavedRecipes();
     }, [])
   );
 
+  // generate user-specific storage key
   const getUserRecipesKey = () => {
     const user = firebase_auth.currentUser;
     if (!user) return null;
     return `savedRecipes_${user.uid}`;
   };
 
+  // load recipes from AsyncStorage
   const loadSavedRecipes = async () => {
     try {
       const storageKey = getUserRecipesKey();
 
       if (!storageKey) {
-        setSavedRecipes([]);
+        setSavedRecipes([]); // no user
         return;
       }
 
       const recipes = await AsyncStorage.getItem(storageKey);
       const parsedRecipes = recipes ? JSON.parse(recipes) : [];
 
+      // sort recipes by most recent
       const sortedRecipes = [...parsedRecipes].sort((a, b) => {
         const timeA = a.cookedAt || 0;
         const timeB = b.cookedAt || 0;
         return timeB - timeA;
       });
 
-      setSavedRecipes(sortedRecipes);
+      setSavedRecipes(sortedRecipes); // update state
     } catch (error) {
       console.log("Error loading saved recipes:", error);
       Alert.alert("Error", "Could not load saved dishes.");
     }
   };
 
+  // delete a recipe from storage
   const deleteRecipe = async (recipeToDelete) => {
     try {
       const storageKey = getUserRecipesKey();
@@ -67,6 +87,7 @@ export default function CookedDishesScreen({ navigation }) {
       const recipes = await AsyncStorage.getItem(storageKey);
       const parsedRecipes = recipes ? JSON.parse(recipes) : [];
 
+      // remove selected recipe
       const updatedRecipes = parsedRecipes.filter(
         (recipe) =>
           !(
@@ -76,13 +97,14 @@ export default function CookedDishesScreen({ navigation }) {
       );
 
       await AsyncStorage.setItem(storageKey, JSON.stringify(updatedRecipes));
-      loadSavedRecipes();
+      loadSavedRecipes(); // refresh list
     } catch (error) {
       console.log("Error deleting recipe:", error);
       Alert.alert("Error", "Could not delete recipe.");
     }
   };
 
+  // confirmation popup before delete
   const confirmDelete = (recipe) => {
     Alert.alert(
       "Delete Recipe",
@@ -98,10 +120,12 @@ export default function CookedDishesScreen({ navigation }) {
     );
   };
 
+  // navigate to recipe details
   const openRecipe = (recipe) => {
     navigation.navigate("DishIntro", { recipe });
   };
 
+  // render each recipe item
   const renderRecipe = ({ item }) => (
     <View style={styles.recipeCard}>
       <TouchableOpacity
@@ -109,7 +133,10 @@ export default function CookedDishesScreen({ navigation }) {
         onPress={() => openRecipe(item)}
         activeOpacity={0.8}
       >
+        {/* recipe image */}
         <Image source={{ uri: item.image }} style={styles.recipeImage} />
+
+        {/* recipe text */}
         <View style={styles.recipeTextContainer}>
           <Text style={styles.recipeTitle}>{item.title}</Text>
           <Text style={styles.recipeInfo}>
@@ -118,6 +145,7 @@ export default function CookedDishesScreen({ navigation }) {
         </View>
       </TouchableOpacity>
 
+      {/* delete button */}
       <TouchableOpacity
         style={styles.deleteButton}
         onPress={() => confirmDelete(item)}
@@ -128,8 +156,10 @@ export default function CookedDishesScreen({ navigation }) {
   );
 
   return (
+    // safe area wrapper
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <View style={styles.container}>
+        {/* top back button */}
         <View style={styles.topBar}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -140,11 +170,13 @@ export default function CookedDishesScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
+        {/* empty state */}
         {savedRecipes.length === 0 ? (
           <Text style={styles.emptyText}>
             You have not cooked any saved dishes yet.
           </Text>
         ) : (
+          // recipe list
           <FlatList
             data={savedRecipes}
             keyExtractor={(item, index) => `${item.id}-${item.difficulty}-${index}`}
@@ -158,6 +190,7 @@ export default function CookedDishesScreen({ navigation }) {
   );
 }
 
+// styles for the screen
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,

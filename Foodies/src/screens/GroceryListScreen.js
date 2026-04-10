@@ -1,4 +1,7 @@
+// React hooks
 import { useEffect, useCallback, useState } from "react";
+
+// React Native components
 import {
   StyleSheet,
   Text,
@@ -7,55 +10,70 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
+
+// Local storage
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// Navigation focus hook
 import { useFocusEffect } from "@react-navigation/native";
+
+// Safe area handling
 import { SafeAreaView } from "react-native-safe-area-context";
+
+// Firebase auth
 import { firebase_auth } from "../firebaseConfig";
 
+// Main screen component
 export default function GroceryListScreen() {
-  const [groceryItems, setGroceryItems] = useState([]);
+  const [groceryItems, setGroceryItems] = useState([]); // grocery list state
 
+  // load list on mount
   useEffect(() => {
     loadGroceryList();
   }, []);
 
+  // reload list when screen is focused
   useFocusEffect(
     useCallback(() => {
       loadGroceryList();
     }, [])
   );
 
+  // generate user-specific storage key
   const getUserGroceryKey = () => {
     const user = firebase_auth.currentUser;
     if (!user) return null;
     return `groceryList_${user.uid}`;
   };
 
+  // load grocery list from storage
   const loadGroceryList = async () => {
     try {
       const storageKey = getUserGroceryKey();
 
       if (!storageKey) {
-        setGroceryItems([]);
+        setGroceryItems([]); // no user
         return;
       }
 
       const savedItems = await AsyncStorage.getItem(storageKey);
       const parsedItems = savedItems ? JSON.parse(savedItems) : [];
 
+      // sort by most recent
       const sortedItems = [...parsedItems].sort((a, b) => {
         const timeA = a.addedAt || 0;
         const timeB = b.addedAt || 0;
         return timeB - timeA;
       });
 
-      setGroceryItems(sortedItems);
+      setGroceryItems(sortedItems); // update state
     } catch (error) {
       console.log("Error loading grocery list:", error);
       Alert.alert("Error", "Could not load grocery list.");
     }
   };
 
+  // remove item from list
   const removeItem = async (itemId) => {
     try {
       const storageKey = getUserGroceryKey();
@@ -63,14 +81,15 @@ export default function GroceryListScreen() {
       if (!storageKey) return;
 
       const updatedItems = groceryItems.filter((item) => item.id !== itemId);
-      setGroceryItems(updatedItems);
-      await AsyncStorage.setItem(storageKey, JSON.stringify(updatedItems));
+      setGroceryItems(updatedItems); // update UI
+      await AsyncStorage.setItem(storageKey, JSON.stringify(updatedItems)); // save
     } catch (error) {
       console.log("Error removing grocery item:", error);
       Alert.alert("Error", "Could not remove item.");
     }
   };
 
+  // confirm removal popup
   const confirmRemove = (item) => {
     Alert.alert(
       "Remove Item",
@@ -86,6 +105,7 @@ export default function GroceryListScreen() {
     );
   };
 
+  // render each grocery item
   const renderItem = ({ item }) => (
     <View style={styles.itemCard}>
       <View style={styles.itemTextWrap}>
@@ -93,6 +113,7 @@ export default function GroceryListScreen() {
         {!!item.measure && <Text style={styles.itemMeasure}>{item.measure}</Text>}
       </View>
 
+      {/* remove button */}
       <TouchableOpacity
         style={styles.removeListButton}
         onPress={() => confirmRemove(item)}
@@ -103,10 +124,13 @@ export default function GroceryListScreen() {
   );
 
   return (
+    // safe area wrapper
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <View style={styles.container}>
+        {/* screen title */}
         <Text style={styles.title}>My Grocery List</Text>
 
+        {/* empty state */}
         {groceryItems.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>Your grocery list is empty.</Text>
@@ -115,6 +139,7 @@ export default function GroceryListScreen() {
             </Text>
           </View>
         ) : (
+          // grocery list
           <FlatList
             data={groceryItems}
             keyExtractor={(item) => item.id}
@@ -128,6 +153,7 @@ export default function GroceryListScreen() {
   );
 }
 
+// styles for UI
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,

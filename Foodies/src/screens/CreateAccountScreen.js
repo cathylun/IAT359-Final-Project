@@ -1,5 +1,10 @@
+// Firebase auth function
 import { createUserWithEmailAndPassword } from "firebase/auth";
+
+// React state hook
 import { useState } from "react";
+
+// React Native components
 import {
   Alert,
   StyleSheet,
@@ -13,35 +18,49 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
+
+// Local storage
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// Safe area handling
 import { SafeAreaView } from "react-native-safe-area-context";
+
+// Firebase config
 import { firebase_auth } from "../firebaseConfig";
+
+// Icons
 import { Ionicons } from "@expo/vector-icons";
 
+// Main screen component
 export default function CreateAccountScreen({ navigation }) {
-  const [favoriteCuisine, setFavoriteCuisine] = useState("Italian");
-  const [cookingSkill, setCookingSkill] = useState("Easy");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [favoriteCuisine, setFavoriteCuisine] = useState("Italian"); // cuisine state
+  const [cookingSkill, setCookingSkill] = useState("Easy"); // skill state
+  const [email, setEmail] = useState(""); // email input
+  const [password, setPassword] = useState(""); // password input
 
+  // options for selection
   const cuisineOptions = ["Italian", "Japanese", "Chinese", "Mexican", "Greek"];
   const skillOptions = ["Easy", "Medium", "Hard"];
 
+  // create account + save preferences
   async function handleCreateAccount() {
     try {
+      // basic validation
       if (!email.trim() || !password.trim()) {
         Alert.alert("Missing Info", "Please enter an email and password.");
         return;
       }
 
+      // create Firebase user
       const userCredential = await createUserWithEmailAndPassword(
         firebase_auth,
         email,
         password
       );
 
-      const uid = userCredential.user.uid;
+      const uid = userCredential.user.uid; // get user ID
 
+      // save preferences locally per user
       await AsyncStorage.setItem(`selectedCuisine_${uid}`, favoriteCuisine);
       await AsyncStorage.setItem(`selectedDifficulty_${uid}`, cookingSkill);
 
@@ -53,18 +72,23 @@ export default function CreateAccountScreen({ navigation }) {
   }
 
   return (
+    // safe area wrapper
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+      {/* dismiss keyboard when tapping outside */}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        {/* adjust layout when keyboard is open */}
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
+          {/* scrollable content */}
           <ScrollView
             contentContainerStyle={styles.scrollContainer}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
             contentInsetAdjustmentBehavior="automatic"
           >
+            {/* back button */}
             <TouchableOpacity
               style={styles.backButton}
               onPress={() => navigation.goBack()}
@@ -73,12 +97,14 @@ export default function CreateAccountScreen({ navigation }) {
               <Text style={styles.backText}>Back</Text>
             </TouchableOpacity>
 
+            {/* main card */}
             <View style={styles.card}>
               <Text style={styles.header}>Create Account</Text>
               <Text style={styles.subtext}>
                 Tell us a little about your cooking style.
               </Text>
 
+              {/* cuisine selection */}
               <Text style={styles.label}>What kind of cuisine do you like?</Text>
               <View style={styles.optionsContainer}>
                 {cuisineOptions.map((option) => (
@@ -102,6 +128,7 @@ export default function CreateAccountScreen({ navigation }) {
                 ))}
               </View>
 
+              {/* skill selection */}
               <Text style={styles.label}>How good are you at cooking?</Text>
               <View style={styles.optionsContainer}>
                 {skillOptions.map((option) => (
@@ -125,6 +152,7 @@ export default function CreateAccountScreen({ navigation }) {
                 ))}
               </View>
 
+              {/* email input */}
               <Text style={styles.label}>Email</Text>
               <TextInput
                 style={styles.input}
@@ -136,6 +164,7 @@ export default function CreateAccountScreen({ navigation }) {
                 placeholderTextColor="#b9a8a8"
               />
 
+              {/* password input */}
               <Text style={styles.label}>Password</Text>
               <TextInput
                 style={styles.input}
@@ -147,6 +176,7 @@ export default function CreateAccountScreen({ navigation }) {
                 placeholderTextColor="#b9a8a8"
               />
 
+              {/* submit button */}
               <TouchableOpacity
                 style={styles.doneButton}
                 onPress={handleCreateAccount}
@@ -161,6 +191,7 @@ export default function CreateAccountScreen({ navigation }) {
   );
 }
 
+// styles for layout and UI
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,

@@ -1,5 +1,10 @@
+// Firebase sign-in function
 import { signInWithEmailAndPassword } from "firebase/auth";
+
+// React state hook
 import { useState } from "react";
+
+// React Native components
 import {
   Alert,
   Image,
@@ -14,15 +19,22 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
+
+// Safe area handling
 import { SafeAreaView } from "react-native-safe-area-context";
+
+// Firebase config
 import { firebase_auth } from "../firebaseConfig";
 
+// Main screen component
 export default function SignInScreen({ navigation }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(""); // email input
+  const [password, setPassword] = useState(""); // password input
 
+  // handle sign-in
   async function handleSignIn() {
     try {
+      // authenticate user
       await signInWithEmailAndPassword(firebase_auth, email, password);
       Alert.alert("Sign in success", `User: ${email} signed in.`);
     } catch (error) {
@@ -32,12 +44,16 @@ export default function SignInScreen({ navigation }) {
   }
 
   return (
+    // safe area wrapper
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+      {/* dismiss keyboard on outside tap */}
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        {/* adjust UI when keyboard opens */}
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
+          {/* scrollable content */}
           <ScrollView
             contentContainerStyle={styles.scrollContainer}
             keyboardShouldPersistTaps="handled"
@@ -45,16 +61,19 @@ export default function SignInScreen({ navigation }) {
             contentInsetAdjustmentBehavior="automatic"
           >
             <View style={styles.card}>
+              {/* app logo */}
               <Image
                 style={styles.logo}
                 source={require("../gif/maindude.png")}
               />
 
+              {/* title + description */}
               <Text style={styles.header}>Food From Home</Text>
               <Text style={styles.subtext}>
                 Sign in to keep cooking with your saved preferences and dishes.
               </Text>
 
+              {/* email input */}
               <Text style={styles.inputHeader}>Email</Text>
               <TextInput
                 style={styles.input}
@@ -66,6 +85,7 @@ export default function SignInScreen({ navigation }) {
                 placeholderTextColor="#b9a8a8"
               />
 
+              {/* password input */}
               <Text style={styles.inputHeader}>Password</Text>
               <TextInput
                 style={styles.input}
@@ -77,10 +97,12 @@ export default function SignInScreen({ navigation }) {
                 placeholderTextColor="#b9a8a8"
               />
 
+              {/* sign-in button */}
               <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
                 <Text style={styles.signInButtonText}>Sign In</Text>
               </TouchableOpacity>
 
+              {/* navigate to create account */}
               <TouchableOpacity
                 style={styles.createAccountButton}
                 onPress={() => navigation.navigate("CreateAccount")}
@@ -95,6 +117,7 @@ export default function SignInScreen({ navigation }) {
   );
 }
 
+// styles for UI
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
